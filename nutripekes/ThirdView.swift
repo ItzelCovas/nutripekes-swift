@@ -15,16 +15,16 @@ struct ThirdView: View {
                 .ignoresSafeArea()
 
             VStack {
-                // MARK: - Barra de Navegación Superior Falsa
+                // MARK: - barra
                 HStack {
                     Image(systemName: "line.horizontal.3")
                         .font(.title)
                         .foregroundColor(.white)
                     Spacer()
-                    Text("NutriPekes")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+                    Image("titulo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 100)
                 }
                 .padding(.horizontal)
                 .padding(.top)

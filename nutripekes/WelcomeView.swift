@@ -16,11 +16,13 @@ struct WelcomeView: View {
             VStack(spacing: 20) {
                 Spacer()
                 
-                Text("NutriPekes")
-                    .font(.system(size: 60, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                // MARK: - Título Principal (AHORA CON IMAGEN)
+                Image("titulo") // Reemplaza "titulo" por el nombre exacto de tu archivo PNG
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 300) // Ajusta el tamaño como prefieras
+                    // .colorInvert() // Descomenta esta línea si tu imagen es negra y la quieres en blanco
 
-                Spacer()
                 Spacer()
                 
                 //Botón de Iniciar

@@ -1,5 +1,5 @@
 //
-//  SecondView.swift
+//  FourthView.swift
 //  nutripekes
 //
 //  Created by Itzel Covarrubias on 21/09/25.
@@ -7,15 +7,15 @@
 
 import SwiftUI
 
-struct SecondView: View {
+struct FourthView: View {
     var body: some View {
         ZStack {
-            // MARK: - Fondo
+            // MARK:
             Color(red: 226/255, green: 114/255, blue: 101/255)
                 .ignoresSafeArea()
 
             VStack {
-                // MARK: - barra arriba
+                // MARK:
                 HStack {
                     Image(systemName: "line.horizontal.3")
                         .font(.title)
@@ -25,57 +25,57 @@ struct SecondView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 100)
-                        
                 }
                 .padding(.horizontal)
                 .padding(.top)
 
                 Spacer()
 
-                // MARK: - Imagen Principal
-                // La manzana triste, para el estado inicial
-                Image("Manzana1")
+                // MARK: - png
+                Image("Manzana3")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 280)
 
                 Spacer()
 
-                // MARK: - Contadores en estado inicial
+                // MARK: -
                 VStack {
+                    // Fila superior de contadores
                     HStack(alignment: .top, spacing: 15) {
-                        // Usamos el componente mejorado, pero con valores iniciales
+                        // Todos con progreso al 1.0 (100%)
                         CounterCircleView(
                             labelText: "Verduras y\nfrutas",
-                            borderColor: .white,
-                            count: 0,
-                            progress: 0.0
+                            borderColor: .green,
+                            count: 5, // número sigue ahí por si decidimos mostrarlo en el futuro
+                            progress: 1.0 //completo
                         )
                         CounterCircleView(
                             labelText: "Origen\nanimal",
-                            borderColor: .white,
-                            count: 0,
-                            progress: 0.0
+                            borderColor: Color(red: 239/255, green: 83/255, blue: 80/255),
+                            count: 3,
+                            progress: 1.0
                         )
                         CounterCircleView(
                             labelText: "Leguminosas",
-                            borderColor: .white,
-                            count: 0,
-                            progress: 0.0
+                            borderColor: .orange,
+                            count: 2,
+                            progress: 1.0
                         )
                         CounterCircleView(
                             labelText: "Cereales",
-                            borderColor: .white,
-                            count: 0,
-                            progress: 0.0
+                            borderColor: .yellow,
+                            count: 6,
+                            progress: 1.0
                         )
                     }
 
+                    // Contador de agua
                     CounterCircleView(
                         labelText: "Vasos de agua",
-                        borderColor: .white,
-                        count: 0,
-                        progress: 0.0
+                        borderColor: .cyan,
+                        count: 6,
+                        progress: 1.0
                     )
                     .padding(.top, 10)
                 }
@@ -88,8 +88,8 @@ struct SecondView: View {
 
 
 // MARK: - Vista Previa
-struct SecondView_Previews: PreviewProvider {
+struct FourthView_Previews: PreviewProvider {
     static var previews: some View {
-        SecondView()
+        FourthView()
     }
 }
