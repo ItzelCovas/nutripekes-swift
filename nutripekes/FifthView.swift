@@ -12,7 +12,7 @@ struct MenuView: View {
     var body: some View {
         VStack(alignment: .leading) {
             
-            // Sección de Padres
+            //sección de papas
             HStack {
                 Text("Padres")
                     .font(.system(size: 34, weight: .bold, design: .rounded))

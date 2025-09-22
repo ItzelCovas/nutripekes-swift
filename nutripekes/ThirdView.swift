@@ -31,8 +31,7 @@ struct ThirdView: View {
 
                 Spacer()
 
-                // MARK: - Imagen Principal
-                // Usamos la nueva imagen de la manzana feliz
+                // MARK: - Imagen
                 Image("Manzana2")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -40,7 +39,7 @@ struct ThirdView: View {
 
                 Spacer()
 
-                // MARK: - Contadores de Comida con Progreso
+                // MARK: - Contadores
                 VStack {
                     // Fila superior de contadores
                     HStack(alignment: .top, spacing: 15) {
@@ -55,19 +54,19 @@ struct ThirdView: View {
                             labelText: "Origen\nanimal",
                             borderColor: Color(red: 239/255, green: 83/255, blue: 80/255),
                             count: 1,
-                            progress: 0.2 // del 20%
+                            progress: 0.2
                         )
                         CounterCircleView(
                             labelText: "Leguminosas",
                             borderColor: .orange,
                             count: 1,
-                            progress: 0.25 // Estimación del 25%
+                            progress: 0.25
                         )
                         CounterCircleView(
                             labelText: "Cereales",
                             borderColor: .yellow,
                             count: 4,
-                            progress: 0.8 // del 80%
+                            progress: 0.8
                         )
                     }
 
@@ -76,7 +75,7 @@ struct ThirdView: View {
                         labelText: "Vasos de agua",
                         borderColor: .cyan,
                         count: 3,
-                        progress: 0.6 // del 60%
+                        progress: 0.6 
                     )
                     .padding(.top, 10)
                 }

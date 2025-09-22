@@ -17,11 +17,10 @@ struct WelcomeView: View {
                 Spacer()
                 
                 // MARK: - Título Principal (AHORA CON IMAGEN)
-                Image("titulo") // Reemplaza "titulo" por el nombre exacto de tu archivo PNG
+                Image("titulo")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 300) // Ajusta el tamaño como prefieras
-                    // .colorInvert() // Descomenta esta línea si tu imagen es negra y la quieres en blanco
+                    .frame(width: 300)
 
                 Spacer()
                 

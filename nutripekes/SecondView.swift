@@ -44,7 +44,6 @@ struct SecondView: View {
                 // MARK: - Contadores en estado inicial
                 VStack {
                     HStack(alignment: .top, spacing: 15) {
-                        // Usamos el componente mejorado, pero con valores iniciales
                         CounterCircleView(
                             labelText: "Verduras y\nfrutas",
                             borderColor: .white,

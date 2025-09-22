@@ -41,7 +41,7 @@ struct PadresView: View {
                         .shadow(radius: 5)
                         .padding(.bottom, 10)
                     
-                    // MARK: Recomendaciones (Imagen)
+                    // MARK: Recomendaciones
                     Image("tabla")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -49,7 +49,7 @@ struct PadresView: View {
                         .shadow(radius: 5)
                         .shadow(radius: 5)
                     
-                    // MARK: Recetario (Imagen)
+                    // MARK: Recetario
                     Image("receta")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -63,7 +63,7 @@ struct PadresView: View {
     }
 }
 
-// MARK: - Vista Previa
+// MARK: - 
 struct PadresView_Previews: PreviewProvider {
     static var previews: some View {
         PadresView()

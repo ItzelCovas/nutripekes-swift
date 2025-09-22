@@ -74,7 +74,7 @@ struct InfoView: View {
 
             ScrollView {
                 VStack(spacing: 25) {
-                    // MARK: - Barra de Navegación Superior
+                    // MARK: - Barra
                     HStack {
                         Button(action: {}) {
                             HStack {

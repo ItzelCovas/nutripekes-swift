@@ -12,7 +12,7 @@ struct CounterCircleView: View {
     let labelText: String
     let borderColor: Color
     let count: Int
-    let progress: Double // valor entre 0.0 y 1.0
+    let progress: Double //  entre 0.0 y 1.0
 
     var body: some View {
         VStack {
@@ -34,7 +34,7 @@ struct CounterCircleView: View {
                 // Borde exterior
                 Circle().stroke(borderColor, lineWidth: 6)
                 
-                //Condicional para mostrar Palomita o Número ---
+                //Condicional para mostrar Palomita o Número 
                 if progress >= 1.0 { // si el progreso está completo
                     Image(systemName: "checkmark.circle.fill") //SFSymbol de palomita
                         .font(.system(size: 40))
