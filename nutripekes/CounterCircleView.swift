@@ -1,54 +1,62 @@
-//
-//  CounterCircleView.swift
-//  nutripekes
-//
-//  Created by Itzel Covarrubias on 21/09/25.
-//
-
 import SwiftUI
 
-// Este es nuestro componente reutilizable en su propio archivo.
 struct CounterCircleView: View {
     let labelText: String
-    let borderColor: Color
+    let borderColor: Color // Este es el color "activo" (ej. verde, naranja)
     let count: Int
-    let progress: Double //  entre 0.0 y 1.0
+    let progress: Double // Ahora va de 0.0 (vacío) a 1.0 (lleno)
+
+    private let inactiveColor = Color(.systemGray3)
+    private let aCompletadoColor = Color.green // Color para el estado final
 
     var body: some View {
         VStack {
             ZStack {
-                // Círculo de fondo
+                                
+                // 1. Definimos los estados
+                let isFinished = count == 0
+
+                // 2. Color del BORDE EXTERIOR:
+                // Será gris (inactiveColor) todo el tiempo,
+                // EXCEPTO al final, que será verde para coincidir con la palomita.
+                let dynamicBorderColor = isFinished ? aCompletadoColor : inactiveColor
+
+                // 3. Fondo blanco sólido.
                 Circle().fill(.white)
                 
-                // Pista de progreso de color blanco --
+                // 4. La PISTA de fondo (El círculo gris que siempre se ve)
                 Circle()
-                    .stroke(Color.white.opacity(0.6), lineWidth: 10) // Pista blanca
+                    .stroke(inactiveColor.opacity(0.5), lineWidth: 10)
+
+                // 5. El RELLENO (La barra de progreso de color)
+                // Sigue la lógica anterior: se dibuja si progress > 0
+                // y usa el color principal del grupo (borderColor).
+                if progress > 0 {
+                    Circle()
+                        .trim(from: 0.0, to: CGFloat(min(self.progress, 1.0)))
+                        .stroke(borderColor, style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round))
+                        .rotationEffect(Angle(degrees: 270.0))
+                        .animation(.linear(duration: 0.5), value: progress)
+                }
                 
-                // Anillo de Progreso (rellenando sobre la pista blanca)
-                Circle()
-                    .trim(from: 0.0, to: CGFloat(min(self.progress, 1.0)))
-                    .stroke(borderColor, style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round))
-                    .rotationEffect(Angle(degrees: 270.0)) // Empieza desde arriba
-                    .animation(.linear(duration: 0.5), value: progress) // Animación más suave
+                // 6. El BORDE EXTERIOR (Usa la nueva lógica)
+                Circle().stroke(dynamicBorderColor, lineWidth: 6)
                 
-                // Borde exterior
-                Circle().stroke(borderColor, lineWidth: 6)
-                
-                //Condicional para mostrar Palomita o Número 
-                if progress >= 1.0 { // si el progreso está completo
-                    Image(systemName: "checkmark.circle.fill") //SFSymbol de palomita
+                // 7. El NÚMERO o la PALOMITA.
+                if isFinished { // Se muestra cuando el contador llega a 0
+                    Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 40))
-                        .foregroundColor(.green) // Color verde para la palomita
+                        .foregroundColor(aCompletadoColor) // Verde
                 } else {
-                    Text("\(count)")
+                    Text("\(count)") // Muestra porciones restantes
                         .font(.system(size: 40, weight: .bold, design: .rounded))
                         .foregroundColor(.black)
                 }
             }
             .frame(width: 80, height: 80)
             .shadow(color: .black.opacity(0.25), radius: 5, x: 0, y: 5)
-
-            //Etiqueta de texto
+            
+            // Etiqueta de texto (sin cambios)
             Text(labelText)
                 .font(.caption)
                 .fontWeight(.semibold)
@@ -56,18 +64,5 @@ struct CounterCircleView: View {
                 .multilineTextAlignment(.center)
                 .frame(height: 40)
         }
-    }
-}
-
-// La vista previa para ver el componente de forma aislada
-struct CounterCircleView_Previews: PreviewProvider {
-    static var previews: some View {
-        // previsualizar diferentes estados
-        HStack(spacing: 20) {
-            CounterCircleView(labelText: "Ejemplo 1", borderColor: .green, count: 0, progress: 0.0)
-            CounterCircleView(labelText: "Ejemplo 2", borderColor: .blue, count: 5, progress: 0.75)
-        }
-        .padding()
-        .background(Color(red: 226/255, green: 114/255, blue: 101/255))
     }
 }
