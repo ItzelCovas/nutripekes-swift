@@ -248,9 +248,7 @@ struct ControlPorcionesSheet: View {
                     // BOTÓN MÁS (+)
                     Button(action: {
                         viewModel.consumePoint(for: group.id)
-                        
-                        // Feedback de audio
-                       
+                                               
                     }) {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
