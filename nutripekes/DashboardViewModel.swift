@@ -33,14 +33,13 @@ struct FoodGroup: Identifiable {
     var examples: [FoodExample]
 }
 
-
 class DashboardViewModel: ObservableObject {
     
     @Published var foodGroups: [FoodGroup] = [] // Inicia vacío
     
     // Estados para los menús
     @Published var selectedGroup: FoodGroup?
-    @Published var showingConfirmation: Bool
+    @Published var showingConfirmation: Bool // Ahora esto abre la hoja de control +/-
     @Published var showingExamplesSheet: Bool
 
     
@@ -164,19 +163,34 @@ class DashboardViewModel: ObservableObject {
         }
     }
 
+    // Función para "comer" (reducir restantes)
     func consumePoint(for groupID: String) {
         if let index = foodGroups.firstIndex(where: { $0.id == groupID }) {
             if foodGroups[index].remainingPoints > 0 {
+                // 1. Modificamos el array principal
                 foodGroups[index].remainingPoints -= 1
+                
+                // 2. --- FIX: Actualizamos también la copia seleccionada ---
+                if selectedGroup?.id == groupID {
+                    selectedGroup = foodGroups[index]
+                }
+                        
                 saveProgress()
             }
         }
     }
     
+    // Función para "corregir/regresar" (aumentar restantes)
     func addPortion(for groupID: String) {
         if let index = foodGroups.firstIndex(where: { $0.id == groupID }) {
             if foodGroups[index].remainingPoints < foodGroups[index].targetPoints {
+                // 1. Modificamos el array principal
                 foodGroups[index].remainingPoints += 1
+                    
+                // 2. --- FIX: Actualizamos también la copia seleccionada ---
+                if selectedGroup?.id == groupID {
+                    selectedGroup = foodGroups[index]
+                }
                 saveProgress()
             }
         }

@@ -121,7 +121,7 @@ struct GuiaSectionView: View {
             }
             .foregroundColor(Color(red: 65/255, green: 78/255, blue: 51/255)) // Verde oscuro
 
-            Text(descripcion)
+            Text(.init(descripcion))
                 .font(.system(size: 17, design: .rounded))
                 .foregroundColor(.black.opacity(0.8))
         }

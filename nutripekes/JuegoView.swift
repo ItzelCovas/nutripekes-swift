@@ -8,7 +8,7 @@ struct JuegoView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showExitAlert = false
     
-    // Estados del timer de 15 min
+    // Estados del timer 
     @Environment(\.scenePhase) var scenePhase
     @State private var timeUsageAlert = false
     @State private var usageTimer: Timer?
@@ -28,7 +28,7 @@ struct JuegoView: View {
                         .position(food.position)
                 }
                 
-                // --- CAPA 3: El Jugador ---
+                //  CAPA 3: Jugador 
                 if let character = viewModel.selectedCharacter {
                     Image(character.imageName)
                         .resizable()
@@ -64,7 +64,7 @@ struct JuegoView: View {
                             
                             Spacer() // Empuja los grupos a los lados
                             
-                            // --- Grupo Derecho (Botón de Salir) ---
+                            //  Grupo Derecho (Botón de Salir)
                             if viewModel.gameState == .jugando {
                                 Button(action: {
                                     viewModel.pauseGame() // Pausa el motor del juego
@@ -118,7 +118,7 @@ struct JuegoView: View {
                     startUsageTimer()
                 }
             } message: {
-                Text("Has estado jugando por 15 minutos. ¡Es un buen momento para tomar un descanso!")
+                Text("Has estado jugando por 5 minutos. ¡Es un buen momento para tomar un descanso!")
             }
             .onAppear {
                 viewModel.setScreenSize(geo.size)
@@ -149,13 +149,13 @@ struct JuegoView: View {
         .navigationBarHidden(true)
     }
     
-    // --- Funciones del Timer de 15 min (sin cambios) ---
+    // --- Funciones del Timer de 5 min (sin cambios) ---
     
     private func startUsageTimer() {
         guard viewModel.gameState == .jugando else { return }
         guard usageTimer == nil else { return }
         
-        let timeInterval: TimeInterval = 900 // 15 minutos (o 10 para pruebas)
+        let timeInterval: TimeInterval = 300 // 5 minutos
         
         usageTimer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: false) { _ in
             viewModel.pauseGame()
@@ -202,7 +202,7 @@ struct JuegoOverlay: View {
                 .padding(.horizontal, 25)
                 .foregroundColor(.white)
                 
-                // Botón de Salir (X) en overlays (superior izquierda)
+                // Botón de Salir (X) en overlays 
                 VStack {
                     HStack {
                         Button(action: {
@@ -210,7 +210,7 @@ struct JuegoOverlay: View {
                         }) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 30, weight: .bold))
-                                .foregroundColor(.red.opacity(0.7))
+                                .foregroundColor(.red.opacity(0.9))
                                 .shadow(radius: 3)
                         }
                         Spacer()
@@ -225,7 +225,7 @@ struct JuegoOverlay: View {
     }
 }
 
-// --- Vistas para cada estado del Overlay (sin cambios) ---
+// --- Vistas para cada estado del Overlay
 
 struct SeleccionPersonajeView: View {
     @ObservedObject var viewModel: JuegoViewModel
@@ -233,11 +233,11 @@ struct SeleccionPersonajeView: View {
     var body: some View {
         VStack(spacing: 30) {
             Text("¡Elige tu personaje!")
-                .font(.system(size: 38, weight: .bold, design: .rounded))
+                .font(.system(size: 30, weight: .bold, design: .rounded))
                 .multilineTextAlignment(.center)
-                .padding(.trailing, 30)
+                .padding(.trailing, 20)
 
-            HStack(spacing: 20) {
+            HStack(spacing: -40) {
                 
                 ForEach(viewModel.personajes) { personaje in
                     Button(action: {
@@ -248,19 +248,21 @@ struct SeleccionPersonajeView: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 100, height: 100)
-                                .background(Color.white.opacity(0.2))
+                                .background(Color.white.opacity(0.3))
                                 .clipShape(Circle())
-                                .padding(25)
+                                .padding(24)
+                                .padding(.horizontal, -1)
                             
                             Text(personaje.name)
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
                         }
                         .padding(.vertical)
-                        .frame(maxWidth: .infinity)
                         .background(Color.white.opacity(0.1))
                         .cornerRadius(20)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .center)
+
             }
         }
     }
@@ -274,7 +276,7 @@ struct InstruccionesView: View {
             .font(.system(size: 50, weight: .bold, design: .rounded))
         
         Text("Mueve a \(viewModel.selectedCharacter?.name ?? "tu personaje") con tu dedo para atrapar la comida saludable. ¡Evita la comida chatarra o perderás vidas!")
-            .font(.system(size: 20, weight: .medium, design: .rounded))
+            .font(.system(size: 15, weight: .medium, design: .rounded))
             .multilineTextAlignment(.center)
             .padding()
             .background(Color.white.opacity(0.1))
@@ -301,7 +303,7 @@ struct GameOverView: View {
     var body: some View {
         VStack(spacing: 20) {
             Text("¡Juego Terminado!")
-                .font(.system(size: 40, weight: .bold, design: .rounded))
+                .font(.system(size: 35, weight: .bold, design: .rounded))
             
             Text("Tu Puntuación: \(viewModel.score)")
                 .font(.system(size: 30, weight: .medium, design: .rounded))

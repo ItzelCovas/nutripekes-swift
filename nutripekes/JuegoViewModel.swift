@@ -35,8 +35,8 @@ class JuegoViewModel: ObservableObject {
     @Published var playerPosition: CGPoint = .zero
     @Published var selectedCharacter: Personaje? = nil
     
-    let playerSize = CGSize(width: 150, height: 190)
-    let foodSize = CGSize(width: 70, height: 70)
+    let playerSize = CGSize(width: 120, height: 150)
+    let foodSize = CGSize(width: 50, height: 50)
     
     // --- Propiedades Privadas ---
     private var gameTimer: Timer?
@@ -57,14 +57,12 @@ class JuegoViewModel: ObservableObject {
     ]
     
     
-    // --- 3. Lista de Personajes Disponibles ---
+    //  3. Lista de Personajes Disponibles
     let personajes: [Personaje] = [
         Personaje(id: "niño", name: "Niño", imageName: "niño_personaje"),
         Personaje(id: "niña", name: "Niña", imageName: "niña_personaje")
     ]
-    
-    // --- (El resto de funciones: init, selectCharacter, startCountdown, etc. se quedan igual) ---
-    
+        
     // (Llamado desde la vista de selección)
     func selectCharacter(_ personaje: Personaje) {
         self.selectedCharacter = personaje
@@ -165,9 +163,7 @@ class JuegoViewModel: ObservableObject {
         self.playerPosition.x = newXClamped
     }
     
-    // *****
-    // ***** 2. FUNCIÓN spawnFood() ACTUALIZADA *****
-    // *****
+
     // Añade una nueva comida en una X aleatoria
     private func spawnFood() {
         let isGoodFood = Bool.random()
@@ -186,9 +182,7 @@ class JuegoViewModel: ObservableObject {
         
         let newFood = FoodItem(position: CGPoint(x: randomX, y: -foodSize.height), imageName: foodImage, isGood: isGoodFood)
         foodItems.append(newFood)
-    }
-    // ***** FIN DE LA ACTUALIZACIÓN *****
-    
+    }    
     
     // Detección de colisiones
     private func checkCollisions() {
