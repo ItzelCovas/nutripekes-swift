@@ -1,8 +1,8 @@
 //
-//  WeolcomeView.swift
-//  nutripekes
+//  WelcomeView.swift
+//  nutripekes
 //
-//  Created by Itzel Covarrubias on 21/09/25.
+//  Created by Itzel Covarrubias on 24/11/25.
 //
 
 import SwiftUI

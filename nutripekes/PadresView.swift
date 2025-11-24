@@ -1,6 +1,6 @@
 import SwiftUI
 
-// --- 1. MODELO DE DATOS (Basado en el JSON) ---
+// --- 1. MODELO DE DATOS (Basado en tu JSON) ---
 // Tiene que ser Codable para leer el JSON de la red.
 struct Receta: Codable, Identifiable, Hashable {
     // Usamos 'id' para 'Identifiable', pero lo mapeamos desde "pk"
