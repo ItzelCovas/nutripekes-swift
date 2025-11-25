@@ -1,8 +1,5 @@
 import SwiftUI
 
-// --- 1. MODELOS DE DATOS PARA DECODIFICAR LA API ---
-
-// El objeto raíz que la API devuelve {"info": [...]}
 struct InfoCardResponse: Codable {
     let info: [InfoCard]
 }
@@ -26,7 +23,7 @@ struct InfoCard: Codable, Identifiable {
     let id: String
     let title: String
     let content: [InfoContentItem]
-    let colorCode: String // "R", "G", "Y"
+    let colorCode: String 
     
     // Mapea los nombres de la API (pk, color) a nuestros nombres (id, colorCode)
     enum CodingKeys: String, CodingKey {
@@ -93,8 +90,7 @@ class InfoViewModel: ObservableObject {
 }
 
 
-// --- 3. VISTA DE LA TARJETA (Actualizada) ---
-// Ahora toma un 'InfoCard' y el 'SpeechManager'
+// 3. VISTA DE LA TARJETA
 struct InfoCardView: View {
     let card: InfoCard
     @EnvironmentObject var speechManager: SpeechManager
@@ -199,7 +195,7 @@ struct InfoView: View {
         .onDisappear {
             speechManager.stop()
         }
-        // 5. LLAMA A LA API CADA VEZ QUE LA VISTA APARECE
+        //LLAMA A LA API CADA QUE LA VISTA APARECE
         .task {
             await viewModel.fetchInfo()
         }
@@ -210,7 +206,7 @@ struct InfoView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             InfoView()
-                .environmentObject(SpeechManager.shared) // Inyecta el motor de voz
+                .environmentObject(SpeechManager.shared) // motor de voz
         }
     }
 }

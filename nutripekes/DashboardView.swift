@@ -4,14 +4,12 @@ struct DashboardView: View {
     @StateObject private var viewModel: DashboardViewModel
     @Binding var isMenuOpen: Bool
     
-    // --- 1. ESTADOS PARA TTS Y TIMERS ---
     @EnvironmentObject var speechManager: SpeechManager
     @Environment(\.scenePhase) var scenePhase
     @State private var timeUsageAlert = false
     @State private var usageTimer: Timer?
     @State private var showingGuiaSheet = false
 
-    // --- 2. OBSERVAR LA EDAD GUARDADA ---
     @AppStorage("childAge") var storedAge: Int = 0
     
     init(isMenuOpen: Binding<Bool>, childAge: Int) {
@@ -34,7 +32,7 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showingGuiaSheet) {
             NavigationView {
-                GuiaUsoView() // Asumo que tienes esta vista definida en otro lado
+                GuiaUsoView()
                     .navigationBarItems(trailing: Button("Cerrar") {
                         showingGuiaSheet = false
                     })
@@ -42,17 +40,16 @@ struct DashboardView: View {
             .environmentObject(speechManager)
         }
         
-        // --- Modificadores de Alerta y Timer ---
+        //  Modificadores de Alerta y Timer
         .alert("¡Hora de un descanso!", isPresented: $timeUsageAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("Has pasado 15 minutos en el dashboard. ¡Es bueno tomar un pequeño descanso!")
+            Text("Has pasado 10 minutos en el dashboard. ¡Es bueno tomar un pequeño descanso!")
         }
         .onAppear {
             startUsageTimer()
-            // Si la edad cambió en segundo plano
-            if storedAge != (viewModel.foodGroups.first?.targetPoints ?? 0) {
-                 viewModel.reloadData(for: storedAge, forceReset: true)
+            if storedAge != viewModel.currentAge {
+                viewModel.reloadData(for: storedAge, forceReset: true)
             }
         }
         .onDisappear {
@@ -67,17 +64,15 @@ struct DashboardView: View {
                 speechManager.stop()
             }
         }
-        // Este modificador "escucha" cualquier cambio en 'storedAge'.
+        // modificador "escucha" cualquier cambio en 'storedAge'.
         .onChange(of: storedAge) { _, newAge in
             viewModel.reloadData(for: newAge, forceReset: true)
         }
     }
-    
-    // --- 5. FUNCIONES DEL TEMPORIZADOR ---
-    
+        
     private func startUsageTimer() {
         stopUsageTimer()
-        let timeInterval: TimeInterval = 300 // 5 min para pruebas, ajusta a 900
+        let timeInterval: TimeInterval = 600 // 5 min para pruebas,se ajusta a 900=15min
         usageTimer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: false) { _ in
             self.timeUsageAlert = true
         }
@@ -91,15 +86,14 @@ struct DashboardView: View {
     }
     
     
-    // --- 6. SUBVISTAS ---
-    
+    //SUBVISTAS
     private var topNavBar: some View {
         HStack {
             Button(action: { isMenuOpen.toggle() }) {
                 Image(systemName: "line.horizontal.3").font(.title)
             }
             Spacer()
-            Image("titulo").resizable().scaledToFit().frame(width: 120)
+            Image("titulo").resizable().scaledToFit().frame(width: 120).padding(.leading, 20)
             Spacer()
             
             Button(action: {
@@ -169,7 +163,6 @@ struct DashboardView: View {
                 }.padding(.top, 10)
             }
         }
-        // MODIFICACIÓN PRINCIPAL: Usamos .sheet en lugar de .confirmationDialog
         .sheet(isPresented: $viewModel.showingConfirmation) {
             if let group = viewModel.selectedGroup {
                 // Llamamos a la nueva vista de control de porciones
@@ -189,7 +182,7 @@ struct DashboardView: View {
     }
 }
 
-// --- VISTA NUEVA: HOJA DE CONTROL DE PORCIONES (+ / -) ---
+// HOJA DE CONTROL DE PORCIONES (+ / -)
 struct ControlPorcionesSheet: View {
     @ObservedObject var viewModel: DashboardViewModel
     var group: FoodGroup
@@ -201,7 +194,6 @@ struct ControlPorcionesSheet: View {
         NavigationView {
             VStack(spacing: 30) {
                 
-                // Título e Icono representativo
                 VStack(spacing: 10) {
                     Text(group.examples.first?.emoji ?? "🍎")
                         .font(.system(size: 80))
@@ -216,29 +208,25 @@ struct ControlPorcionesSheet: View {
                 
                 Spacer()
                 
-                // --- SECCIÓN DE CONTROLES ---
                 HStack(spacing: 40) {
                     
                     // BOTÓN MENOS (-)
                     Button(action: {
                         viewModel.addPortion(for: group.id)
-                        speechManager.speak(text: "Corrección")
                     }) {
                         Image(systemName: "minus.circle.fill")
                             .resizable()
                             .frame(width: 70, height: 70)
-                            // Se pone gris si no hemos comido nada (restantes == meta)
                             .foregroundColor(group.remainingPoints >= group.targetPoints ? .gray.opacity(0.3) : .red)
                     }
                     .disabled(group.remainingPoints >= group.targetPoints)
                     
-                    // CONTADOR CENTRAL (Muestra lo que llevas comido)
                     VStack {
                         let consumidas = group.targetPoints - group.remainingPoints
                         Text("\(consumidas)")
                             .font(.system(size: 70, weight: .heavy, design: .rounded))
                             .foregroundColor(.primary)
-                            .contentTransition(.numericText()) // Animación suave (iOS 16+)
+                            .contentTransition(.numericText())
                         
                         Text("de \(group.targetPoints)")
                             .font(.title3)
@@ -253,7 +241,6 @@ struct ControlPorcionesSheet: View {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
                             .frame(width: 70, height: 70)
-                            // Se pone gris si ya comimos todo (restantes == 0)
                             .foregroundColor(group.remainingPoints <= 0 ? .gray.opacity(0.3) : .green)
                     }
                     .disabled(group.remainingPoints <= 0)
@@ -261,7 +248,6 @@ struct ControlPorcionesSheet: View {
                 
                 Spacer()
                 
-                // Botón para ver ejemplos
                 Button(action: {
                     viewModel.showingExamplesSheet = true
                 }) {
@@ -287,7 +273,6 @@ struct ControlPorcionesSheet: View {
     }
 }
 
-// --- VISTA DE EJEMPLOS (Existente) ---
 struct ExampleSheetView: View {
     let group: FoodGroup
     @Environment(\.dismiss) var dismiss
@@ -328,5 +313,13 @@ struct ExampleSheetView: View {
         .onDisappear {
             speechManager.stop()
         }
+    }
+}
+
+
+struct DashboardView_Previews: PreviewProvider {
+    static var previews: some View {
+        DashboardView(isMenuOpen: .constant(false), childAge: 5)
+            .environmentObject(SpeechManager())
     }
 }

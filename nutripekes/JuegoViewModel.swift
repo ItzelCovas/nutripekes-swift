@@ -1,18 +1,20 @@
 import Foundation
 import SwiftUI
+import AVFoundation
 
-// (Las structs FoodItem, Personaje y GameState se quedan igual)
 struct Personaje: Identifiable, Equatable {
     let id: String
     let name: String
-    let imageName: String // "niño_personaje" o "niña_personaje"
+    let imageName: String
 }
+
 struct FoodItem: Identifiable, Equatable {
     let id = UUID()
     var position: CGPoint
     let imageName: String
     let isGood: Bool
 }
+
 enum GameState {
     case seleccionPersonaje
     case instrucciones
@@ -21,28 +23,27 @@ enum GameState {
     case gameOver
 }
 
-// --- 2. El ViewModel (El Cerebro) ---
 class JuegoViewModel: ObservableObject {
     
-    // --- Propiedades del Estado del Juego ---
     @Published var gameState: GameState = .seleccionPersonaje
     @Published var foodItems: [FoodItem] = []
     @Published var lives: Int = 3
     @Published var score: Int = 0
     @Published var countdownText: String = "3"
     
-    // --- Propiedades del Jugador ---
     @Published var playerPosition: CGPoint = .zero
     @Published var selectedCharacter: Personaje? = nil
     
-    let playerSize = CGSize(width: 120, height: 150)
+    let playerSize = CGSize(width: 220, height: 150)
     let foodSize = CGSize(width: 50, height: 50)
     
-    // --- Propiedades Privadas ---
     private var gameTimer: Timer?
     private var countdownTimer: Timer?
     private var screenSize: CGSize = .zero
     
+    private var audioPlayer: AVAudioPlayer? //musica de fondo
+    private var sfxPlayer: AVAudioPlayer? //efectos de sonido
+    private var successPlayer: AVAudioPlayer?
     
     private let goodFoodImages: [String] = [
         "brocoli_img",
@@ -56,20 +57,69 @@ class JuegoViewModel: ObservableObject {
         "soda_img",
     ]
     
-    
-    //  3. Lista de Personajes Disponibles
     let personajes: [Personaje] = [
         Personaje(id: "niño", name: "Niño", imageName: "niño_personaje"),
         Personaje(id: "niña", name: "Niña", imageName: "niña_personaje")
     ]
+    
+    init() {
+        setupMusic()
+    }
+    
+    private func playErrorSound() {
+        if sfxPlayer?.isPlaying == true {
+            sfxPlayer?.stop()
+            sfxPlayer?.currentTime = 0
+        }
+        sfxPlayer?.play()
+    }
+    
+    private func playSuccessSound() {
+        if successPlayer?.isPlaying == true {
+            successPlayer?.stop()
+            successPlayer?.currentTime = 0
+        }
+        successPlayer?.play()
+    }
+    
+    private func setupMusic() {
+        if let path = Bundle.main.path(forResource: "musica_fondo", ofType: "mp3") {
+            do {
+                audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
+                audioPlayer?.numberOfLoops = -1
+                audioPlayer?.volume = 0.5
+                audioPlayer?.prepareToPlay()
+            } catch {
+                print("Error al cargar la música: \(error)")
+            }
+        }
         
-    // (Llamado desde la vista de selección)
+        if let sfxPath = Bundle.main.path(forResource: "error_sonido", ofType: "mp3") {
+            do {
+                sfxPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: sfxPath))
+                sfxPlayer?.volume = 1.0 // Volumen al máximo
+                sfxPlayer?.prepareToPlay()
+            } catch {
+                print("Error al cargar el sonido de error: \(error)")
+            }
+        }
+        
+        if let successPath = Bundle.main.path(forResource: "correcto_sonido", ofType: "mp3") {
+            do {
+                successPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: successPath))
+                successPlayer?.volume = 1.0 // Volumen al máximo
+                successPlayer?.prepareToPlay()
+            } catch {
+                print("Error éxito: \(error)")
+            }
+        }
+    }
+    
     func selectCharacter(_ personaje: Personaje) {
         self.selectedCharacter = personaje
         self.gameState = .instrucciones
     }
     
-    // (Llamado desde la vista de instrucciones)
     func startCountdown() {
         self.countdownText = "3"
         self.gameState = .countdown
@@ -93,31 +143,35 @@ class JuegoViewModel: ObservableObject {
     // Inicia el bucle principal del juego
     private func startGame() {
         self.gameState = .jugando
+        audioPlayer?.play()
         
-        // El "motor" del juego
         gameTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
             self?.gameLoop()
         }
     }
     
-    // Pausa el motor del juego
     func pauseGame() {
         gameTimer?.invalidate()
         gameTimer = nil
+        audioPlayer?.pause()
         print("Juego pausado.")
     }
     
-    // Reanuda el motor del juego
     func resumeGame() {
         if gameState == .jugando && gameTimer == nil {
             print("Reanudando el juego.")
+            audioPlayer?.play()
             gameTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
                 self?.gameLoop()
             }
         }
     }
     
-    // Se ejecuta en cada "tick" del motor
+    func stopMusicCompletely() {
+        audioPlayer?.stop()
+        audioPlayer?.currentTime = 0
+    }
+    
     private func gameLoop() {
         for i in 0..<foodItems.count {
             foodItems[i].position.y += 6
@@ -137,6 +191,8 @@ class JuegoViewModel: ObservableObject {
         gameTimer?.invalidate()
         gameTimer = nil
         gameState = .gameOver
+        audioPlayer?.stop()
+        audioPlayer?.currentTime = 0 //reiniciar canción al principio
     }
     
     // Reinicia todo para volver a jugar
@@ -144,19 +200,17 @@ class JuegoViewModel: ObservableObject {
         self.lives = 3
         self.score = 0
         self.foodItems.removeAll()
-        self.playerPosition = CGPoint(x: screenSize.width / 2, y: screenSize.height - (playerSize.height / 2) - 100)
+        self.playerPosition = CGPoint(x: screenSize.width / 2, y: screenSize.height - (playerSize.height / 2) - 50)
         self.gameState = .seleccionPersonaje
+        audioPlayer?.prepareToPlay()
     }
     
-    // --- 5. Funciones de Lógica del Juego ---
-    
-    // (Llamado desde la Vista)
+    // Funciones de Lógica del Juego
     func setScreenSize(_ size: CGSize) {
         self.screenSize = size
-        self.playerPosition = CGPoint(x: size.width / 2, y: size.height - (playerSize.height / 2) - 100)
+        self.playerPosition = CGPoint(x: size.width / 2, y: size.height - (playerSize.height / 2) - 50)
     }
     
-    // (Llamado desde el DragGesture)
     func movePlayer(to newX: CGFloat) {
         let halfPlayer = playerSize.width / 2
         let newXClamped = max(halfPlayer, min(screenSize.width - halfPlayer, newX))
@@ -164,17 +218,13 @@ class JuegoViewModel: ObservableObject {
     }
     
 
-    // Añade una nueva comida en una X aleatoria
     private func spawnFood() {
         let isGoodFood = Bool.random()
         let foodImage: String
         
         if isGoodFood {
-            // Elige una comida BUENA al azar de la lista
-            // El '?? "brocoli_img"' es por seguridad, si la lista estuviera vacía
             foodImage = goodFoodImages.randomElement() ?? "brocoli_img"
         } else {
-            // Elige una comida MALA al azar de la lista
             foodImage = badFoodImages.randomElement() ?? "papitas_img"
         }
         
@@ -182,30 +232,45 @@ class JuegoViewModel: ObservableObject {
         
         let newFood = FoodItem(position: CGPoint(x: randomX, y: -foodSize.height), imageName: foodImage, isGood: isGoodFood)
         foodItems.append(newFood)
-    }    
+    }
     
-    // Detección de colisiones
+    // colisiones
     private func checkCollisions() {
-        let playerRect = CGRect(
-            x: playerPosition.x - playerSize.width / 2,
-            y: playerPosition.y - playerSize.height / 2,
-            width: playerSize.width,
-            height: playerSize.height
-        )
+        let hitboxScale: CGFloat = 0.6
+    
+        let reducedWidth = playerSize.width * hitboxScale
+        let reducedHeight = playerSize.height * hitboxScale
         
+        let playerRect = CGRect(
+            x: playerPosition.x - reducedWidth / 2,
+            y: playerPosition.y - reducedHeight / 2,
+            width: reducedWidth,
+            height: reducedHeight
+        )
+
         for (index, food) in foodItems.enumerated().reversed() {
-            let foodRect = CGRect(
-                x: food.position.x - foodSize.width / 2,
-                y: food.position.y - foodSize.height / 2,
-                width: foodSize.width,
-                height: foodSize.height
-            )
+            let foodScale: CGFloat = 0.9
+            let foodW = foodSize.width * foodScale
+            let foodH = foodSize.height * foodScale
             
+            let foodRect = CGRect(
+                x: food.position.x - foodW / 2,
+                y: food.position.y - foodH / 2,
+                width: foodW,
+                height: foodH
+            )
+        
             if playerRect.intersects(foodRect) {
                 if food.isGood {
                     score += 10
+                    // Lógica de recuperar vida (máximo 3)
+                    if lives < 3 {
+                        lives += 1
+                    }
+                    playSuccessSound()
                 } else {
                     lives -= 1
+                    playErrorSound()
                 }
                 foodItems.remove(at: index)
             }

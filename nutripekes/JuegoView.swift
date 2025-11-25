@@ -4,11 +4,9 @@ struct JuegoView: View {
     
     @StateObject private var viewModel = JuegoViewModel()
     
-    // Estados para los popups
     @Environment(\.dismiss) var dismiss
     @State private var showExitAlert = false
     
-    // Estados del timer 
     @Environment(\.scenePhase) var scenePhase
     @State private var timeUsageAlert = false
     @State private var usageTimer: Timer?
@@ -28,7 +26,7 @@ struct JuegoView: View {
                         .position(food.position)
                 }
                 
-                //  CAPA 3: Jugador 
+                //  CAPA 3: Jugador
                 if let character = viewModel.selectedCharacter {
                     Image(character.imageName)
                         .resizable()
@@ -42,7 +40,7 @@ struct JuegoView: View {
                     VStack { // Contenedor principal de la UI
                         HStack(alignment: .top) { // Barra superior
                             
-                            // --- Grupo Izquierdo (Vidas y Puntos) ---
+                            // Grupo Izquierdo (Vidas y Puntos)
                             VStack(alignment: .leading, spacing: 10) {
                                 // Vidas (Arriba)
                                 HStack(spacing: 5) {
@@ -62,33 +60,32 @@ struct JuegoView: View {
                                     .cornerRadius(15)
                             }
                             
-                            Spacer() // Empuja los grupos a los lados
+                            Spacer()
                             
                             //  Grupo Derecho (Botón de Salir)
                             if viewModel.gameState == .jugando {
                                 Button(action: {
-                                    viewModel.pauseGame() // Pausa el motor del juego
-                                    stopUsageTimer()      // Pausa el timer de 15 min
-                                    showExitAlert = true  // Muestra el popup de confirmación
+                                    viewModel.pauseGame()
+                                    stopUsageTimer()
+                                    showExitAlert = true
                                 }) {
                                     Image(systemName: "xmark.circle.fill")
-                                        .font(.system(size: 30, weight: .bold))
-                                        .foregroundColor(.red.opacity(0.8))
+                                        .font(.system(size: 40, weight: .bold))
+                                        .foregroundColor(.red)
+                                        .background(Circle().fill(Color.white))
                                         .shadow(radius: 3)
                                 }
-                                .padding(.top, 5) // Ajuste vertical
+                                .padding(.top, 5)
                             }
                         }
-                        .padding(.leading, 20) // Mantiene el margen izquierdo de 20
-                        .padding(.trailing, 50) // Aumenta el margen derecho a 30 (mueve el botón X 10 puntos a la izquierda)
+                        .padding(.leading, 20)
+                        .padding(.trailing, 50)
                         
-                        Spacer() // Empuja la barra superior hacia arriba
+                        Spacer()
                     }
-                    .padding(.top, 50) // Margen para el notch/isla
+                    .padding(.top, 50)
                 }
-                
-                
-                // --- CAPA 5: Overlays (Selección, Instrucciones, etc.) ---
+                                
                 JuegoOverlay(viewModel: viewModel)
                 
             }
@@ -103,6 +100,7 @@ struct JuegoView: View {
             // (Modificadores de alerta y timers)
             .alert("¿Salir del Juego?", isPresented: $showExitAlert) {
                 Button("Salir", role: .destructive) {
+                    viewModel.stopMusicCompletely() // Aseguramos que pare al salir
                     dismiss()
                 }
                 Button("Continuar Jugando", role: .cancel) {
@@ -118,7 +116,7 @@ struct JuegoView: View {
                     startUsageTimer()
                 }
             } message: {
-                Text("Has estado jugando por 5 minutos. ¡Es un buen momento para tomar un descanso!")
+                Text("Has estado jugando por 10 minutos. ¡Es un buen momento para tomar un descanso!")
             }
             .onAppear {
                 viewModel.setScreenSize(geo.size)
@@ -126,8 +124,9 @@ struct JuegoView: View {
             }
             .onDisappear {
                 stopUsageTimer()
+                viewModel.stopMusicCompletely() // IMPORTANTE: Parar música al irse de la vista
             }
-            .onChange(of: scenePhase) { newPhase in
+            .onChange(of: scenePhase) {_, newPhase in
                 if newPhase == .active {
                     if viewModel.gameState == .jugando {
                         viewModel.resumeGame()
@@ -138,7 +137,7 @@ struct JuegoView: View {
                     stopUsageTimer()
                 }
             }
-            .onChange(of: viewModel.gameState) { newGameState in
+            .onChange(of: viewModel.gameState) { _,newGameState in
                 if newGameState == .jugando {
                     startUsageTimer()
                 } else {
@@ -149,8 +148,7 @@ struct JuegoView: View {
         .navigationBarHidden(true)
     }
     
-    // --- Funciones del Timer de 5 min (sin cambios) ---
-    
+    //  Funciones del Timer
     private func startUsageTimer() {
         guard viewModel.gameState == .jugando else { return }
         guard usageTimer == nil else { return }
@@ -171,7 +169,6 @@ struct JuegoView: View {
     }
 }
 
-// --- Vista Auxiliar para los Menús ---
 struct JuegoOverlay: View {
     
     @ObservedObject var viewModel: JuegoViewModel
@@ -184,7 +181,8 @@ struct JuegoOverlay: View {
                 Color.black.opacity(0.75)
                     .ignoresSafeArea()
                 
-                VStack(spacing: 30) {
+                // Contenido Central (Menú)
+                VStack {
                     switch viewModel.gameState {
                     case .seleccionPersonaje:
                         SeleccionPersonajeView(viewModel: viewModel)
@@ -192,107 +190,130 @@ struct JuegoOverlay: View {
                         InstruccionesView(viewModel: viewModel)
                     case .countdown:
                         Text(viewModel.countdownText)
+                            //.border(Color.yellow, width: 3)
+                            .padding(.leading, -35)
                             .font(.system(size: 100, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
                     case .gameOver:
                         GameOverView(viewModel: viewModel)
                     case .jugando:
                         EmptyView()
                     }
                 }
-                .padding(.horizontal, 25)
-                .foregroundColor(.white)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
-                // Botón de Salir (X) en overlays 
+                //Botón de Salir (X)
                 VStack {
                     HStack {
                         Button(action: {
+                            viewModel.stopMusicCompletely()
                             dismiss()
                         }) {
                             Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 30, weight: .bold))
-                                .foregroundColor(.red.opacity(0.9))
+                                .font(.system(size: 40, weight: .bold))
+                                .foregroundColor(.red)
+                                .background(Circle().fill(Color.white))
                                 .shadow(radius: 3)
                         }
+                        
                         Spacer()
                     }
                     Spacer()
                 }
-                .padding(.vertical)
-                .padding(.horizontal, 20)
-                .padding(.top, 40)
+                //.border(.yellow)
+                .padding(.top, 50)
+                .padding(.leading, 20)
+                .padding(.trailing, 60)
             }
         }
     }
 }
 
-// --- Vistas para cada estado del Overlay
-
+ 
 struct SeleccionPersonajeView: View {
     @ObservedObject var viewModel: JuegoViewModel
     
     var body: some View {
-        VStack(spacing: 30) {
+        VStack(spacing: 50) {
             Text("¡Elige tu personaje!")
-                .font(.system(size: 30, weight: .bold, design: .rounded))
+                .font(.system(size: 32, weight: .heavy, design: .rounded))
                 .multilineTextAlignment(.center)
-                .padding(.trailing, 20)
-
-            HStack(spacing: -40) {
+                .foregroundColor(.white)
+                //.border(Color.white, width: 2)
+                .padding(.leading,-10)
+            
                 
+            HStack(spacing: 30) {
                 ForEach(viewModel.personajes) { personaje in
                     Button(action: {
                         viewModel.selectCharacter(personaje)
                     }) {
-                        VStack {
-                            Image(personaje.imageName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 100, height: 100)
-                                .background(Color.white.opacity(0.3))
-                                .clipShape(Circle())
-                                .padding(24)
-                                .padding(.horizontal, -1)
-                            
+                        VStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white.opacity(0.2))
+                                    .frame(width: 120, height: 120)
+                                
+                                Circle()
+                                    .stroke(Color.white, lineWidth: 2)
+                                    .frame(width: 120, height: 120)
+                                
+                                Image(personaje.imageName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 90, height: 90)
+                            }
                             Text(personaje.name)
-                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
                         }
-                        .padding(.vertical)
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(20)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
-
             }
         }
+        .padding(20)
+        .frame(maxWidth: .infinity)
+        .padding(.leading, -30)
     }
 }
 
 struct InstruccionesView: View {
     @ObservedObject var viewModel: JuegoViewModel
-    
     var body: some View {
-        Text("¡Atrápalo!")
-            .font(.system(size: 50, weight: .bold, design: .rounded))
-        
-        Text("Mueve a \(viewModel.selectedCharacter?.name ?? "tu personaje") con tu dedo para atrapar la comida saludable. ¡Evita la comida chatarra o perderás vidas!")
-            .font(.system(size: 15, weight: .medium, design: .rounded))
-            .multilineTextAlignment(.center)
-            .padding()
-            .background(Color.white.opacity(0.1))
-            .cornerRadius(15)
-
-        Button("¡OK!") {
-            viewModel.startCountdown()
+        // CONTENIDO
+        VStack(spacing: 40) {
+            Text("¡Atrápalo!")
+                //.border(Color.white, width: 2)
+                .padding(.leading, -20)
+                .font(.system(size: 50, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            
+            Text("Mueve a \(viewModel.selectedCharacter?.name ?? "tu personaje") con tu dedo para atrapar la comida saludable.\n\n¡Evita la comida chatarra o perderás vidas!")
+                //.border(Color.red)
+                .padding(.leading, 20)
+                .padding(.trailing, 20)
+                .font(.system(size: 22, weight: .medium, design: .rounded))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                
+            Button("¡OK!") {
+                viewModel.startCountdown()
+            }
+            .font(.system(size: 24, weight: .bold, design: .rounded))
+            .padding(.horizontal, 40)
+            .padding(.vertical, 15)
+            .background(Color.yellow)
+            .padding(.leading, -10)
+            .foregroundColor(.black)
+            .cornerRadius(20)
         }
-        .font(.system(size: 24, weight: .bold, design: .rounded))
-        .padding(.horizontal, 40)
-        .padding(.vertical, 15)
-        .background(Color.yellow)
-        .foregroundColor(.black)
-        .cornerRadius(20)
+        //.border(Color.yellow)
+        .padding(.leading, -5)
+        .padding(.trailing, 30)
     }
 }
+
 
 
 struct GameOverView: View {
@@ -302,7 +323,7 @@ struct GameOverView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("¡Juego Terminado!")
+            Text("Juego Terminado")
                 .font(.system(size: 35, weight: .bold, design: .rounded))
             
             Text("Tu Puntuación: \(viewModel.score)")
@@ -319,6 +340,7 @@ struct GameOverView: View {
             .cornerRadius(20)
             
             Button("Salir del Juego") {
+                viewModel.stopMusicCompletely()
                 dismiss()
             }
             .font(.system(size: 18, weight: .bold, design: .rounded))
@@ -328,7 +350,6 @@ struct GameOverView: View {
     }
 }
 
-// --- Vista Previa ---
 struct JuegoView_Previews: PreviewProvider {
     static var previews: some View {
         JuegoView()

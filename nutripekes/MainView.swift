@@ -2,11 +2,11 @@ import SwiftUI
 
 struct MainView: View {
     @State private var isMenuOpen = false // menú empieza cerrado
-    let childAge: Int //1. Aceptar la edad
+    let childAge: Int //Aceptar la edad
 
     var body: some View {
         ZStack(alignment: .leading) {
-            // 2. Pasar la edad a DashboardView
+            // Pasar la edad a DashboardView
             DashboardView(isMenuOpen: $isMenuOpen, childAge: childAge)
 
             // Sombreado semitransparente que aparece con el menú
@@ -125,7 +125,6 @@ struct MenuView: View {
                 .cornerRadius(10)
             }
             
-            // --- SECCIÓN AJUSTES CON TTS ---
             HStack {
                 Text("Ajustes")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
@@ -160,8 +159,8 @@ struct MenuView: View {
         .background(Color(red: 65/255, green: 78/255, blue: 51/255).opacity(0.95))
         .edgesIgnoringSafeArea(.all)
         .onDisappear {
-            isMenuOpen = false // Asegura que el menú se cierre al navegar
-            speechManager.stop() // ¡Detiene la voz si el menú se cierra!
+            isMenuOpen = false
+            speechManager.stop()
         }
     }
 }
@@ -169,7 +168,7 @@ struct MenuView: View {
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView(childAge:5)
-            // 2. ¡Importante! Añade esto para que el Preview no crashee
+            // para que el Preview no crashee
             .environmentObject(SpeechManager.shared)
     }
 }

@@ -8,12 +8,8 @@
 import SwiftUI
 
 struct AgeSelectionView: View {
-    // 1. Se conecta a la variable "childAge" en la memoria local.
-    // Si no existe, su valor por defecto es 0.
     @AppStorage("childAge") var childAge: Int = 0
-    
-    // 2. Estado local para el picker
-    @State private var selectedAge = 3 // Empezar en la edad mínima
+    @State private var selectedAge = 3 // edad mínima
 
     var body: some View {
         ZStack {
@@ -21,7 +17,7 @@ struct AgeSelectionView: View {
             
             VStack(spacing: 30) {
                 Spacer()
-                Image("titulo") //
+                Image("titulo")
                     .resizable().aspectRatio(contentMode: .fit).frame(width: 300)
                 
                 Text("¡Bienvenido!\nSelecciona la edad de tu peque:")
@@ -46,8 +42,7 @@ struct AgeSelectionView: View {
                 // 4. Botón para guardar la edad
                 Button(action: {
                     // Al presionar, guarda la edad en AppStorage.
-                    // Esto hará que la vista principal (nutripekesApp) se actualice
-                    // y muestre la WelcomeView.
+                    //hará que la vista principal (nutripekesApp) se actualice y muestre la WelcomeView
                     self.childAge = selectedAge
                 }) {
                     Text("Guardar y Empezar")

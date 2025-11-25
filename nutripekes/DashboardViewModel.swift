@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
+import AVFoundation
 
-// --- Almacenamiento Local (Memoria) ---
 class DailyProgressStorage {
     @AppStorage("lastSavedDate") static var lastSavedDate: String = ""
     @AppStorage("progressVerduras") static var progressVerduras: Int = -1
@@ -17,7 +17,6 @@ class DailyProgressStorage {
     }
 }
 
-// --- Modelos de Datos ---
 struct FoodExample: Identifiable {
     let id = UUID()
     let name: String
@@ -35,25 +34,50 @@ struct FoodGroup: Identifiable {
 
 class DashboardViewModel: ObservableObject {
     
-    @Published var foodGroups: [FoodGroup] = [] // Inicia vacío
+    @Published var foodGroups: [FoodGroup] = []
     
-    // Estados para los menús
     @Published var selectedGroup: FoodGroup?
-    @Published var showingConfirmation: Bool // Ahora esto abre la hoja de control +/-
+    @Published var showingConfirmation: Bool
     @Published var showingExamplesSheet: Bool
-
+    
+    private var successPlayer: AVAudioPlayer?
+    
+    var currentAge: Int = 0
     
     init(age: Int) {
         self.showingConfirmation = false
         self.showingExamplesSheet = false
         self.selectedGroup = nil
-        
         self.reloadData(for: age, forceReset: false)
+        
+        setupAudio()
+    }
+    
+    private func setupAudio() {
+        if let path = Bundle.main.path(forResource: "up_sonido", ofType: "mp3") {
+            do {
+                successPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
+                successPlayer?.volume = 1.0
+                successPlayer?.prepareToPlay()
+            } catch {
+                print("Error al cargar sonido en Dashboard: \(error)")
+            }
+        }
+    }
+    
+    func playSuccessSound() {
+        if successPlayer?.isPlaying == true {
+            successPlayer?.stop()
+            successPlayer?.currentTime = 0
+        }
+        successPlayer?.play()
     }
     
     func reloadData(for age: Int, forceReset: Bool = false) {
         
         print("Recargando datos para la edad: \(age). Forzar Reseteo: \(forceReset)")
+        
+        self.currentAge = age
         
         let targetPortions = DashboardViewModel.getPortions(for: age)
         let today = DailyProgressStorage.getTodayString()
@@ -126,8 +150,6 @@ class DashboardViewModel: ObservableObject {
     
     
     var appleImageName: String {
-        
-        // Convertimos a Double para calcular el porcentaje
         let totalTargetPoints = Double(foodGroups.reduce(0) { $0 + $1.targetPoints })
         let totalRemaining = Double(foodGroups.reduce(0) { $0 + $1.remainingPoints })
         
@@ -138,28 +160,26 @@ class DashboardViewModel: ObservableObject {
         
         let totalConsumed = totalTargetPoints - totalRemaining
         let completionPercentage = totalConsumed / totalTargetPoints
-        
-        // Ahora, mapeamos el porcentaje a las 5 imágenes
-        
+                
         if totalRemaining == 0 {
             // Estado 5: 100% completo
-            return "manzana4" // Roja y feliz
+            return "manzana4" 
             
         } else if completionPercentage > 0.66 {
             // Estado 4: 67% - 99% completo
-            return "manzana3" // Naranja y sonriente
+            return "manzana3"
             
         } else if completionPercentage > 0.33 {
             // Estado 3: 34% - 66% completo
-            return "manzana2" // Amarilla y neutral
+            return "manzana2"
             
         } else if completionPercentage > 0 {
             // Estado 2: 1% - 33% completo
-            return "manzana1" // Verde-amarilla y neutral
+            return "manzana1"
             
         } else {
             // Estado 1: 0% completo (no ha comido nada)
-            return "manzana0" // Verde y triste
+            return "manzana0"
         }
     }
 
@@ -167,27 +187,23 @@ class DashboardViewModel: ObservableObject {
     func consumePoint(for groupID: String) {
         if let index = foodGroups.firstIndex(where: { $0.id == groupID }) {
             if foodGroups[index].remainingPoints > 0 {
-                // 1. Modificamos el array principal
                 foodGroups[index].remainingPoints -= 1
                 
-                // 2. --- FIX: Actualizamos también la copia seleccionada ---
                 if selectedGroup?.id == groupID {
                     selectedGroup = foodGroups[index]
                 }
                         
                 saveProgress()
+                playSuccessSound()
             }
         }
     }
     
-    // Función para "corregir/regresar" (aumentar restantes)
     func addPortion(for groupID: String) {
         if let index = foodGroups.firstIndex(where: { $0.id == groupID }) {
             if foodGroups[index].remainingPoints < foodGroups[index].targetPoints {
-                // 1. Modificamos el array principal
                 foodGroups[index].remainingPoints += 1
                     
-                // 2. --- FIX: Actualizamos también la copia seleccionada ---
                 if selectedGroup?.id == groupID {
                     selectedGroup = foodGroups[index]
                 }

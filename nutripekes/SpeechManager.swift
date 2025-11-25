@@ -1,16 +1,16 @@
 import Foundation
-import AVFoundation // Importa el framework de Audio/Video de Apple
+import AVFoundation //framework de Audio/Video de Apple
 
-// 1. Creamos una clase que se puede compartir en toda la app
+//clase que se puede compartir en toda la app
 class SpeechManager: ObservableObject {
     
-    // 2. Esta es la instancia compartida (Singleton)
+    //la instancia compartida (Singleton)
     static let shared = SpeechManager()
     
-    // 3. Este es el "motor" real que habla
+    // "motor" real que habla
     private var synthesizer = AVSpeechSynthesizer()
     
-    // 4. Esta es la función principal que llamarán tus botones
+    // función principal que llamarán tus botones
     func speak(text: String) {
         // Detiene cualquier cosa que estuviera hablando antes
         stop()

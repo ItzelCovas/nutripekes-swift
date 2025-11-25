@@ -1,7 +1,6 @@
 import SwiftUI
 
-// --- 1. MODELO DE DATOS (Basado en tu JSON) ---
-// Tiene que ser Codable para leer el JSON de la red.
+// MODELO DE DATOS (JSON)
 struct Receta: Codable, Identifiable, Hashable {
     // Usamos 'id' para 'Identifiable', pero lo mapeamos desde "pk"
     let id: String
@@ -21,8 +20,8 @@ struct Receta: Codable, Identifiable, Hashable {
     }
 }
 
-// --- 2. VIEWMODEL (El que hace el Request) ---
-@MainActor // Asegura que los cambios a la UI ocurran en el hilo principal
+// VIEWMODEL (que hace el Request)
+@MainActor 
 class RecetarioViewModel: ObservableObject {
     
     @Published var recetas = [Receta]()
@@ -31,32 +30,32 @@ class RecetarioViewModel: ObservableObject {
 
     // Función 'async' para descargar los datos
     func fetchRecetas() async {
-        // Tu URL
+        // URL
         guard let url = URL(string: "https://nutripekes-api.vercel.app/recetas") else {
             errorMessage = "URL inválida"
             return
         }
         
-        // Muestra el "cargando..."
+        // Muestra "cargando..."
         isLoading = true
         errorMessage = nil
         
         do {
-            // 1. Hacer la petición de red (el "request")
+            // Hacer la petición de red (el "request")
             let (data, _) = try await URLSession.shared.data(from: url)
             
-            // 2. Decodificar el JSON usando nuestro 'struct Receta'
+            // Decodificar el JSON usando  'struct Receta'
             let recetasDecodificadas = try JSONDecoder().decode([Receta].self, from: data)
             
-            // 3. Actualizar la lista (esto actualiza la UI)
+            //Actualizar la lista (actualiza la UI)
             self.recetas = recetasDecodificadas
             self.isLoading = false
             
         } catch {
-            // 4. Manejar cualquier error
+            // Manejar cualquier error
             self.isLoading = false
             self.errorMessage = "Error al cargar recetas: \(error.localizedDescription)"
-            print("Error al decodificar: \(error)") // Para depuración
+            print("Error al decodificar: \(error)") // depuración
         }
     }
 }
@@ -64,13 +63,11 @@ class RecetarioViewModel: ObservableObject {
 
 struct PadresView: View {
     
-    // --- 3. USAMOS EL NUEVO VIEWMODEL ---
     @StateObject private var viewModel = RecetarioViewModel()
     
     @EnvironmentObject var speechManager: SpeechManager
     @State private var searchText = ""
 
-    // El filtro ahora usa la lista del ViewModel
     var filteredRecetas: [Receta] {
         if searchText.isEmpty {
             return viewModel.recetas
@@ -79,7 +76,6 @@ struct PadresView: View {
             // Filtra por 'titulo' O por 'ingredientes'
             return viewModel.recetas.filter { receta in
                 let tituloCoincide = receta.titulo.lowercased().contains(lowercasedQuery)
-                // Lógica para buscar en ingredientes como ["pan", "mantequilla"]
                 let ingredienteCoincide = receta.ingredientes.contains { ingrediente in
                     ingrediente.lowercased().contains(lowercasedQuery)
                 }
@@ -96,7 +92,6 @@ struct PadresView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     
-                    // --- TÍTULO CON TTS (Sin cambios) ---
                     HStack {
                         Spacer()
                         Text("Padres")
@@ -115,7 +110,7 @@ struct PadresView: View {
                     }
                     .padding(.horizontal)
 
-                    // --- TABLA CON TTS
+                    //  TABLA CON TTS
                     ZStack(alignment: .topTrailing) {
                         Image("tabla")
                             .resizable()
@@ -138,7 +133,7 @@ struct PadresView: View {
                         .padding(10)
                     }
                     
-                    // --- TÍTULO DE RECETAS CON TTS
+                    //  TÍTULO DE RECETAS CON TTS
                     HStack {
                         Text("Ideas de Lunch")
                             .font(.system(size: 30, weight: .bold, design: .rounded))
@@ -157,16 +152,15 @@ struct PadresView: View {
                     .padding(.horizontal)
                     .padding(.top, 10)
 
-                    // --- 4. LÓGICA DE CARGA Y SECCIÓN DE RECETAS
                     
-                    // Si está cargando, muestra un spinner
+                    // spinner
                     if viewModel.isLoading {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             .frame(maxWidth: .infinity)
                             .padding()
                     
-                    // Si hubo un error, muéstralo
+                    // Si hubo un error se muestra
                     } else if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .foregroundColor(.yellow)
@@ -215,7 +209,7 @@ struct PadresView: View {
         .onDisappear {
             speechManager.stop()
         }
-        // --- 5. LLAMADA A LA API ---
+        //  LLAMADA A LA API
         // .task se ejecuta CADA VEZ que la vista aparece
         .task {
             await viewModel.fetchRecetas()
@@ -225,13 +219,13 @@ struct PadresView: View {
 
 // --- 6. VISTA DE TARJETA AUXILIAR (Actualizada con AsyncImage) ---
 struct RecetaCardView: View {
-    let imagenURL: String // <-- Ahora recibe una URL
+    let imagenURL: String //recibe una URL
     let titulo: String
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             
-            // AsyncImage carga una imagen desde una URL
+            // AsyncImage carga  imagen desde una URL
             AsyncImage(url: URL(string: imagenURL)) { phase in
                 if let image = phase.image {
                     image
@@ -243,12 +237,11 @@ struct RecetaCardView: View {
                         .font(.largeTitle)
                         .foregroundColor(.red)
                 } else {
-                    // Mientras carga, muestra un spinner
                     ProgressView()
                 }
             }
             .frame(width: 220, height: 130)
-            .background(Color.gray.opacity(0.2)) // Fondo para el spinner
+            .background(Color.gray.opacity(0.2))
             .clipped()
 
             Text(titulo)
@@ -264,18 +257,15 @@ struct RecetaCardView: View {
 }
 
 
-// --- 7. VISTA DE DETALLE (Actualizada para la API) ---
 struct RecetaDetailView: View {
     let receta: Receta
     
     @EnvironmentObject var speechManager: SpeechManager
     
-    // Propiedad para separar ingredientes como "pan,mantequilla"
     private var ingredientesLimpios: [String] {
         receta.ingredientes.flatMap { $0.split(separator: ",").map { String($0.trimmingCharacters(in: .whitespaces)) } }
     }
     
-    // Propiedad para separar las instrucciones que vienen en un solo string
     private var pasosInstrucciones: [String] {
         receta.instrucciones.components(separatedBy: .decimalDigits)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: "."))) }
@@ -304,7 +294,6 @@ struct RecetaDetailView: View {
                     .cornerRadius(15)
                     .shadow(radius: 5)
 
-                    // --- Sección de Ingredientes ---
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Text("Ingredientes")
@@ -331,7 +320,7 @@ struct RecetaDetailView: View {
                         }
                     }
                     
-                    // --- SECCIÓN DE INSTRUCCIONES ---
+                    // INSTRUCCIONES
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Text("Instrucciones")
@@ -373,7 +362,6 @@ struct RecetaDetailView: View {
 }
 
 
-// --- VISTAS PREVIAS (Actualizadas) ---
 struct PadresView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
@@ -385,7 +373,7 @@ struct PadresView_Previews: PreviewProvider {
 
 struct RecetaDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        // Usamos uno de los ejemplos de la API para la vista previa
+        // ejemplos de la API para vista previa **prueba
         let previewReceta = Receta(
             id: "01K9XZWJ9RFWPZDWPG2X69VTC7",
             titulo: "Milanesa de Pollo",
