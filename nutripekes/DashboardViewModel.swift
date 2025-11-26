@@ -41,6 +41,8 @@ class DashboardViewModel: ObservableObject {
     @Published var showingExamplesSheet: Bool
     
     private let soundManager = SoundEffectManager()
+    private var upPlayer: AVAudioPlayer?
+    private var winPlayer: AVAudioPlayer?
     
     var currentAge: Int = 0
     
@@ -49,6 +51,37 @@ class DashboardViewModel: ObservableObject {
         self.showingExamplesSheet = false
         self.selectedGroup = nil
         self.reloadData(for: age, forceReset: false)
+        
+        setupAppleSounds()
+    }
+    
+    private func setupAppleSounds() {
+        if let upPath = Bundle.main.path(forResource: "up_sonido", ofType: "mp3") {
+            do {
+                upPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: upPath))
+                upPlayer?.volume = 1.0
+                upPlayer?.prepareToPlay()
+            } catch { print("Error cargando up_sonido") }
+        }
+        
+        if let winPath = Bundle.main.path(forResource: "win_sonido", ofType: "mp3") {
+            do {
+                winPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: winPath))
+                winPlayer?.volume = 1.0
+                winPlayer?.prepareToPlay()
+            } catch { print("Error cargando win_sonido") }
+        }
+    }
+        
+    // Funciones auxiliares para reproducir sin interrupciones
+    private func playUp() {
+        if upPlayer?.isPlaying == true { upPlayer?.stop(); upPlayer?.currentTime = 0 }
+        upPlayer?.play()
+    }
+    
+    private func playWin() {
+        if winPlayer?.isPlaying == true { winPlayer?.stop(); winPlayer?.currentTime = 0 }
+        winPlayer?.play()
     }
     
     
@@ -167,13 +200,32 @@ class DashboardViewModel: ObservableObject {
     func consumePoint(for groupID: String) {
         if let index = foodGroups.firstIndex(where: { $0.id == groupID }) {
             if foodGroups[index].remainingPoints > 0 {
+                
+                // 4. CAPTURAMOS EL ESTADO "ANTES" (SNAPSHOT)
+                let oldAppleState = self.appleImageName
+                
+                // Hacemos el cambio de puntos
                 foodGroups[index].remainingPoints -= 1
                 
                 if selectedGroup?.id == groupID {
                     selectedGroup = foodGroups[index]
                 }
                 saveProgress()
+                
+                // 5. CAPTURAMOS EL ESTADO "DESPUÉS"
+                let newAppleState = self.appleImageName
+                    
+                // Sonido de Click siempre suena (porque pulsaste el botón)
                 soundManager.playClick()
+                
+                // 6. LÓGICA DE LA MANZANA
+                if newAppleState == "manzana4" && oldAppleState != "manzana4" {
+                    // Si acabamos de llegar a la meta final...
+                    playWin()
+                } else if newAppleState != oldAppleState {
+                    // Si la imagen de la manzana cambió (subió de nivel)...
+                    playUp()
+                }
             }
         }
     }
