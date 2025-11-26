@@ -40,7 +40,7 @@ class DashboardViewModel: ObservableObject {
     @Published var showingConfirmation: Bool
     @Published var showingExamplesSheet: Bool
     
-    private var successPlayer: AVAudioPlayer?
+    private let soundManager = SoundEffectManager()
     
     var currentAge: Int = 0
     
@@ -49,29 +49,8 @@ class DashboardViewModel: ObservableObject {
         self.showingExamplesSheet = false
         self.selectedGroup = nil
         self.reloadData(for: age, forceReset: false)
-        
-        setupAudio()
     }
     
-    private func setupAudio() {
-        if let path = Bundle.main.path(forResource: "up_sonido", ofType: "mp3") {
-            do {
-                successPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
-                successPlayer?.volume = 1.0
-                successPlayer?.prepareToPlay()
-            } catch {
-                print("Error al cargar sonido en Dashboard: \(error)")
-            }
-        }
-    }
-    
-    func playSuccessSound() {
-        if successPlayer?.isPlaying == true {
-            successPlayer?.stop()
-            successPlayer?.currentTime = 0
-        }
-        successPlayer?.play()
-    }
     
     func reloadData(for age: Int, forceReset: Bool = false) {
         
@@ -96,7 +75,8 @@ class DashboardViewModel: ObservableObject {
                     FoodExample(name: "Brócoli", emoji: "🥦"),
                     FoodExample(name: "Naranja", emoji: "🍊"),
                     FoodExample(name: "Plátano", emoji: "🍌"),
-                    FoodExample(name: "Manzana", emoji: "🍎")
+                    FoodExample(name: "Manzana", emoji: "🍎"),
+                    FoodExample(name: "Pera", emoji: "🍐")
                 ]
             ),
             FoodGroup(
@@ -192,9 +172,8 @@ class DashboardViewModel: ObservableObject {
                 if selectedGroup?.id == groupID {
                     selectedGroup = foodGroups[index]
                 }
-                        
                 saveProgress()
-                playSuccessSound()
+                soundManager.playClick()
             }
         }
     }
@@ -208,6 +187,7 @@ class DashboardViewModel: ObservableObject {
                     selectedGroup = foodGroups[index]
                 }
                 saveProgress()
+                soundManager.playClick()
             }
         }
     }

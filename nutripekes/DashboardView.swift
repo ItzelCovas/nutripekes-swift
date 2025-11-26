@@ -64,7 +64,7 @@ struct DashboardView: View {
                 speechManager.stop()
             }
         }
-        // modificador "escucha" cualquier cambio en 'storedAge'.
+
         .onChange(of: storedAge) { _, newAge in
             viewModel.reloadData(for: newAge, forceReset: true)
         }
