@@ -277,8 +277,12 @@ struct ControlPorcionesSheet: View {
                 .padding(.bottom, 20)
                 
             }
-            .navigationBarItems(trailing: Button("Listo") {
+            .navigationBarItems(trailing: Button(action: {
                 isPresented = false
+            }){
+                Text("Listo")
+                    .bold() 
+                    .foregroundColor(.red)
             })
         }
     }
