@@ -2,15 +2,12 @@ import SwiftUI
 
 // MODELO DE DATOS (JSON)
 struct Receta: Codable, Identifiable, Hashable {
-    // Usamos 'id' para 'Identifiable', pero lo mapeamos desde "pk"
     let id: String
     let titulo: String
     let ingredientes: [String]
     let imagenURL: String
     let instrucciones: String
 
-    // 'CodingKeys' nos permite "traducir" los nombres del JSON
-    // a los nombres que preferimos usar en nuestro código.
     enum CodingKeys: String, CodingKey {
         case id = "pk"
         case titulo = "name"
@@ -20,42 +17,32 @@ struct Receta: Codable, Identifiable, Hashable {
     }
 }
 
-// VIEWMODEL (que hace el Request)
-@MainActor 
+// VIEWMODEL
+@MainActor
 class RecetarioViewModel: ObservableObject {
     
     @Published var recetas = [Receta]()
     @Published var isLoading = false
     @Published var errorMessage: String? = nil
 
-    // Función 'async' para descargar los datos
     func fetchRecetas() async {
-        // URL
         guard let url = URL(string: "https://nutripekes-api.vercel.app/recetas") else {
             errorMessage = "URL inválida"
             return
         }
         
-        // Muestra "cargando..."
         isLoading = true
         errorMessage = nil
         
         do {
-            // Hacer la petición de red (el "request")
             let (data, _) = try await URLSession.shared.data(from: url)
-            
-            // Decodificar el JSON usando  'struct Receta'
             let recetasDecodificadas = try JSONDecoder().decode([Receta].self, from: data)
-            
-            //Actualizar la lista (actualiza la UI)
             self.recetas = recetasDecodificadas
             self.isLoading = false
-            
         } catch {
-            // Manejar cualquier error
             self.isLoading = false
             self.errorMessage = "Error al cargar recetas: \(error.localizedDescription)"
-            print("Error al decodificar: \(error)") // depuración
+            print("Error al decodificar: \(error)")
         }
     }
 }
@@ -73,7 +60,6 @@ struct PadresView: View {
             return viewModel.recetas
         } else {
             let lowercasedQuery = searchText.lowercased()
-            // Filtra por 'titulo' O por 'ingredientes'
             return viewModel.recetas.filter { receta in
                 let tituloCoincide = receta.titulo.lowercased().contains(lowercasedQuery)
                 let ingredienteCoincide = receta.ingredientes.contains { ingrediente in
@@ -92,6 +78,7 @@ struct PadresView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     
+                    // --- TÍTULO PRINCIPAL ---
                     HStack {
                         Spacer()
                         Text("Padres")
@@ -100,17 +87,21 @@ struct PadresView: View {
                             .shadow(radius: 5)
                             .padding(.bottom, 5)
                         Spacer()
+                        
+                        // Botón Intro Padres
                         Button(action: {
-                            speechManager.speak(text: "Sección de Padres. Aquí encontrarás la tabla de recomendaciones y el recetario.")
+                            speechManager.speak(text: "Sección de Padres. Aquí encontrarás la tabla de recomendaciones y el recetario.", id: "padres_intro")
                         }) {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .font(.title2)
-                                .foregroundColor(.white)
+                            if speechManager.isSpeaking && speechManager.currentID == "padres_intro" {
+                                Image(systemName: "pause.circle.fill").font(.title2).foregroundColor(.white)
+                            } else {
+                                Image(systemName: "speaker.wave.2.fill").font(.title2).foregroundColor(.white)
+                            }
                         }
                     }
                     .padding(.horizontal)
 
-                    //  TABLA CON TTS
+                    // --- TABLA CON TTS ---
                     ZStack(alignment: .topTrailing) {
                         Image("tabla")
                             .resizable()
@@ -119,21 +110,31 @@ struct PadresView: View {
                             .shadow(radius: 5)
                             .padding(.horizontal)
                         
+                        // Botón Tabla
                         Button(action: {
                             let texto = "Tabla de recomendaciones de edad, peso, talla e índice de masa corporal para niños de 3 a 10 años."
-                            speechManager.speak(text: texto)
+                            speechManager.speak(text: texto, id: "padres_tabla")
                         }) {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .font(.title2)
-                                .padding(5)
-                                .background(Color.black.opacity(0.5))
-                                .clipShape(Circle())
-                                .foregroundColor(.white)
+                            if speechManager.isSpeaking && speechManager.currentID == "padres_tabla" {
+                                Image(systemName: "pause.circle.fill")
+                                    .font(.title2)
+                                    .padding(5)
+                                    .background(Color.black.opacity(0.5))
+                                    .clipShape(Circle())
+                                    .foregroundColor(.white)
+                            } else {
+                                Image(systemName: "speaker.wave.2.fill")
+                                    .font(.title2)
+                                    .padding(5)
+                                    .background(Color.black.opacity(0.5))
+                                    .clipShape(Circle())
+                                    .foregroundColor(.white)
+                            }
                         }
                         .padding(10)
                     }
                     
-                    //  TÍTULO DE RECETAS CON TTS
+                    // --- TÍTULO DE RECETAS CON TTS ---
                     HStack {
                         Text("Ideas de Lunch")
                             .font(.system(size: 30, weight: .bold, design: .rounded))
@@ -141,32 +142,35 @@ struct PadresView: View {
                         
                         Spacer()
                         
+                        // Botón Intro Recetas
                         Button(action: {
-                            speechManager.speak(text: "Ideas de Lunch. Desliza a la izquierda para ver recetas. Toca una para ver los detalles. Puedes buscar por ingrediente.")
+                            speechManager.speak(text: "Ideas de Lunch. Desliza a la izquierda para ver recetas. Toca una para ver los detalles. Puedes buscar por ingrediente.", id: "padres_recetas_intro")
                         }) {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .font(.title2)
-                                .foregroundColor(.white)
+                            if speechManager.isSpeaking && speechManager.currentID == "padres_recetas_intro" {
+                                Image(systemName: "pause.circle.fill").font(.title2).foregroundColor(.white)
+                            } else {
+                                Image(systemName: "speaker.wave.2.fill").font(.title2).foregroundColor(.white)
+                            }
                         }
                     }
                     .padding(.horizontal)
                     .padding(.top, 10)
 
                     
-                    // spinner
+                    // SPINNER DE CARGA
                     if viewModel.isLoading {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             .frame(maxWidth: .infinity)
                             .padding()
                     
-                    // Si hubo un error se muestra
+                    // MENSAJE DE ERROR
                     } else if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .foregroundColor(.yellow)
                             .padding()
                     
-                    // Si la búsqueda no encuentra nada
+                    // MENSAJE DE BÚSQUEDA VACÍA
                     } else if filteredRecetas.isEmpty {
                         HStack {
                             Spacer()
@@ -179,7 +183,7 @@ struct PadresView: View {
                         }
                         .padding(.horizontal)
                     
-                    // Si todo está bien, muestra las recetas
+                    // LISTA DE RECETAS
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 20) {
@@ -209,30 +213,26 @@ struct PadresView: View {
         .onDisappear {
             speechManager.stop()
         }
-        //  LLAMADA A LA API
-        // .task se ejecuta CADA VEZ que la vista aparece
         .task {
             await viewModel.fetchRecetas()
         }
     }
 }
 
-// --- 6. VISTA DE TARJETA AUXILIAR (Actualizada con AsyncImage) ---
+// VISTA DE TARJETA AUXILIAR
 struct RecetaCardView: View {
-    let imagenURL: String //recibe una URL
+    let imagenURL: String
     let titulo: String
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             
-            // AsyncImage carga  imagen desde una URL
             AsyncImage(url: URL(string: imagenURL)) { phase in
                 if let image = phase.image {
                     image
                         .resizable()
-                        .aspectRatio(contentMode: .fill) // Llena el espacio
+                        .aspectRatio(contentMode: .fill)
                 } else if phase.error != nil {
-                    // Si falla la carga, muestra un ícono de error
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.largeTitle)
                         .foregroundColor(.red)
@@ -279,14 +279,12 @@ struct RecetaDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 25) {
                     
-                    // Carga la imagen de la URL
+                    // Imagen Principal
                     AsyncImage(url: URL(string: receta.imagenURL)) { phase in
                         if let image = phase.image {
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
+                            image.resizable().aspectRatio(contentMode: .fill)
                         } else {
-                            ProgressView() // Spinner si está cargando
+                            ProgressView()
                         }
                     }
                     .frame(height: 200)
@@ -294,22 +292,27 @@ struct RecetaDetailView: View {
                     .cornerRadius(15)
                     .shadow(radius: 5)
 
+                    // --- SECCIÓN INGREDIENTES ---
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Text("Ingredientes")
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
                             Spacer()
+                            
+                            // Botón Ingredientes
                             Button(action: {
-                                // Lee la lista de ingredientes limpios
                                 let texto = ingredientesLimpios.joined(separator: ", ")
-                                speechManager.speak(text: "Ingredientes: \(texto)")
+                                // Usamos el ID de la receta + "_ing" para hacerlo único
+                                speechManager.speak(text: "Ingredientes: \(texto)", id: "\(receta.id)_ing")
                             }) {
-                                Image(systemName: "speaker.wave.2.fill")
-                                    .font(.title2)
+                                if speechManager.isSpeaking && speechManager.currentID == "\(receta.id)_ing" {
+                                    Image(systemName: "pause.circle.fill").font(.title2)
+                                } else {
+                                    Image(systemName: "speaker.wave.2.fill").font(.title2)
+                                }
                             }
                         }
                         
-                        // Muestra la lista de ingredientes limpios
                         ForEach(ingredientesLimpios, id: \.self) { ingrediente in
                             HStack(alignment: .top) {
                                 Image(systemName: "checkmark.circle.fill")
@@ -320,22 +323,26 @@ struct RecetaDetailView: View {
                         }
                     }
                     
-                    // INSTRUCCIONES
+                    // --- SECCIÓN INSTRUCCIONES ---
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Text("Instrucciones")
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
                             Spacer()
+                            
+                            // Botón Instrucciones
                             Button(action: {
-                                // Lee el texto original completo
-                                speechManager.speak(text: "Instrucciones: \(receta.instrucciones)")
+                                // Usamos el ID de la receta + "_ins"
+                                speechManager.speak(text: "Instrucciones: \(receta.instrucciones)", id: "\(receta.id)_ins")
                             }) {
-                                Image(systemName: "speaker.wave.2.fill")
-                                    .font(.title2)
+                                if speechManager.isSpeaking && speechManager.currentID == "\(receta.id)_ins" {
+                                    Image(systemName: "pause.circle.fill").font(.title2)
+                                } else {
+                                    Image(systemName: "speaker.wave.2.fill").font(.title2)
+                                }
                             }
                         }
                         
-                        // Muestra la lista de pasos que separamos
                         ForEach(Array(pasosInstrucciones.enumerated()), id: \.offset) { index, instruccion in
                             HStack(alignment: .top) {
                                 Text("\(index + 1).")
@@ -373,13 +380,12 @@ struct PadresView_Previews: PreviewProvider {
 
 struct RecetaDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        // ejemplos de la API para vista previa **prueba
         let previewReceta = Receta(
             id: "01K9XZWJ9RFWPZDWPG2X69VTC7",
             titulo: "Milanesa de Pollo",
             ingredientes: ["pollo"],
             imagenURL: "https://pub-4c1673fbabc74a9dadd292365457c6ac.r2.dev/recipes/82e4c6f2-de2a-4e6e-ac21-4573eeba792a-milanesa.jpg",
-            instrucciones: "1 Abrir las pechugas con un cuchillo como si fueran un libro. 2 Batir los huevos con la leche... 3 Colocar las pechugas..."
+            instrucciones: "1 Abrir las pechugas... 2 Batir huevos..."
         )
         
         NavigationView {

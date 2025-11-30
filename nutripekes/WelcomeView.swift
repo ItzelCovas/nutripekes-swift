@@ -4,11 +4,9 @@
 //
 //  Created by Itzel Covarrubias on 24/11/25.
 //
-
 import SwiftUI
 
 struct WelcomeView: View {
-    // Recibe la conexión para poder cambiar el estado en la vista principal.
     @Binding var hasStarted: Bool
 
     var body: some View {
@@ -24,11 +22,10 @@ struct WelcomeView: View {
                 Spacer()
                 
                 Button(action: {
-                    // Al presionar, cambia la variable en la vista principal a 'true'.
                     self.hasStarted = true
                 }) {
                     VStack {
-                        Image("manzana_bamx") // Asegúrate que este sea el nombre correcto en tus Assets
+                        Image("manzana_bamx")
                             .resizable().aspectRatio(contentMode: .fit).frame(width: 80, height: 80)
                         Text("Iniciar")
                             .font(.system(size: 50, weight: .bold, design: .rounded)).foregroundColor(.white)

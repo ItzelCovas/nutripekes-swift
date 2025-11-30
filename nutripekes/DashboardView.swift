@@ -72,7 +72,7 @@ struct DashboardView: View {
         
     private func startUsageTimer() {
         stopUsageTimer()
-        let timeInterval: TimeInterval = 600 // 5 min para pruebas,se ajusta a 900=15min
+        let timeInterval: TimeInterval = 600 // 10 min para pruebas,se ajusta a 900=15min
         usageTimer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: false) { _ in
             self.timeUsageAlert = true
         }
@@ -98,10 +98,18 @@ struct DashboardView: View {
             
             Button(action: {
                 let texto = "Esta es la pantalla principal. Toca un círculo para registrar las porciones de comida que has comido hoy. ¡Mira cómo la manzanita se pone feliz!"
-                speechManager.speak(text: texto)
+                
+                speechManager.speak(text: texto, id: "dashboard_intro")
             }) {
-                Image(systemName: "speaker.wave.2.fill")
-                    .font(.title2)
+                if speechManager.isSpeaking && speechManager.currentID == "dashboard_intro" {
+                    Image(systemName: "pause.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                } else {
+                    Image(systemName: "speaker.wave.2.fill")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                }
             }
             
             Button(action: {
@@ -134,7 +142,6 @@ struct DashboardView: View {
                         let total = Double(group.targetPoints)
                         let progress = (total == 0) ? 0 : (consumed / total)
 
-                        // Asumo que tienes CounterCircleView en otro archivo o más abajo
                         CounterCircleView(
                             labelText: group.name,
                             borderColor: group.color,
@@ -165,14 +172,18 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $viewModel.showingConfirmation) {
             if let group = viewModel.selectedGroup {
-                // Llamamos a la nueva vista de control de porciones
+                // se llama a la nueva vista de control de porciones
                 ControlPorcionesSheet(
                     viewModel: viewModel,
                     group: group,
                     isPresented: $viewModel.showingConfirmation
                 )
                 .environmentObject(speechManager)
-                // Permitimos que la hoja de ejemplos se abra desde la hoja de control
+                .presentationDetents([.height(500)])
+                .background(Color.white.opacity(0.4))
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(35)
+                .presentationBackgroundInteraction(.enabled)
                 .sheet(isPresented: $viewModel.showingExamplesSheet) {
                     ExampleSheetView(group: group)
                         .environmentObject(speechManager)
@@ -258,8 +269,8 @@ struct ControlPorcionesSheet: View {
                     .font(.headline)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(group.color.opacity(0.1))
-                    .foregroundColor(group.color)
+                    .background(group.color.opacity(0.3))
+                    .foregroundColor(.black)
                     .cornerRadius(15)
                 }
                 .padding(.horizontal)
@@ -283,24 +294,35 @@ struct ExampleSheetView: View {
         NavigationView {
             List(group.examples) { example in
                 HStack(spacing: 20) {
-                   
+                    
                     Text(example.emoji)
                         .font(.system(size: 40))
                         .frame(width: 40)
-                   
+                    
                     Text(example.name)
                         .font(.system(size: 20, weight: .medium, design: .rounded))
-                   
+                    
                     Spacer()
-                   
+                    
+                    // --- BOTÓN CON LÓGICA DE ICONO ---
                     Button(action: {
-                        speechManager.speak(text: example.name)
+                        // Enviamos el Texto y el ID único del ejemplo
+                        speechManager.speak(text: example.name, id: example.id.uuidString)
                     }) {
-                        Image(systemName: "speaker.wave.2.fill")
-                            .font(.body)
-                            .foregroundColor(.accentColor)
+                        // PREGUNTA: ¿Está hablando? Y ADEMÁS, ¿Es este el ID que suena?
+                        if speechManager.isSpeaking && speechManager.currentID == example.id.uuidString {
+                            // Icono de PAUSA (Cuando está sonando)
+                            Image(systemName: "pause.circle.fill")
+                                .font(.title) // Un poco más grande
+                                .foregroundColor(.red) // Color para indicar "parar"
+                        } else {
+                            // Icono de SPEAKER (Normal)
+                            Image(systemName: "speaker.wave.2.fill")
+                                .font(.body)
+                                .foregroundColor(.accentColor)
+                        }
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .buttonStyle(PlainButtonStyle()) // Para que el click sea solo en el icono
                 }
                 .padding(.vertical, 8)
             }
@@ -315,7 +337,6 @@ struct ExampleSheetView: View {
         }
     }
 }
-
 
 struct DashboardView_Previews: PreviewProvider {
     static var previews: some View {

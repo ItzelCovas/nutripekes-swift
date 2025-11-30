@@ -9,7 +9,6 @@ import SwiftUI
 
 struct GuiaUsoView: View {
     
-    // 1. Obtenemos el motor de voz
     @EnvironmentObject var speechManager: SpeechManager
     
     var body: some View {
@@ -42,7 +41,7 @@ struct GuiaUsoView: View {
                     
                     // Sección 3
                     GuiaSectionView(
-                        titulo: "3. Opciones (Comer, Ver, Eliminar)",
+                        titulo: "3. Opciones",
                         icono: "list.bullet",
                         descripcion: "Al tocar un círculo, puedes:\n• **Comer 1 porción:** Resta 1 al contador.\n• **Eliminar 1 porción:** Regresa 1 porción si te equivocaste.\n• **Ver ejemplos:** Muestra una lista de alimentos de ese grupo."
                     )
@@ -61,9 +60,7 @@ struct GuiaUsoView: View {
                         descripcion: "Toca las tres rayas para abrir el menú. Desde aquí puedes acceder a la sección de 'Padres' (recetas y tablas) e 'Información'."
                     )
                     
-                    // *****
-                    // ***** 2. NUEVA SECCIÓN AÑADIDA AQUÍ *****
-                    // *****
+                    // Sección 6
                     GuiaSectionView(
                         titulo: "6. Lector de Voz (TTS)",
                         icono: "speaker.wave.2.fill",
@@ -81,21 +78,19 @@ struct GuiaUsoView: View {
             Color(red: 226/255, green: 114/255, blue: 101/255),
             for: .navigationBar
         )
-        // 3. Detiene la voz si el usuario sale de esta pantalla
+        // Detiene la voz si el usuario sale de esta pantalla
         .onDisappear {
             speechManager.stop()
         }
     }
 }
 
-// 4. Una vista auxiliar para que cada tarjeta de guía se vea bien
-// (Esta struct no cambia, pero es necesaria en el archivo)
 struct GuiaSectionView: View {
     var titulo: String
     var icono: String
     var descripcion: String
     
-    // Obtenemos el motor de voz para la bocina de la guía
+    // Obtenemos el motor de voz
     @EnvironmentObject var speechManager: SpeechManager
     
     var body: some View {
@@ -109,14 +104,19 @@ struct GuiaSectionView: View {
                 
                 Spacer()
                 
-                // 5. Botón de bocina para cada sección de la guía
                 Button(action: {
                     let textoCompleto = "\(titulo). \(descripcion)"
-                    speechManager.speak(text: textoCompleto)
+                    speechManager.speak(text: textoCompleto, id: titulo)
                 }) {
-                    Image(systemName: "speaker.wave.2.fill")
-                        .font(.body)
-                        .foregroundColor(Color(red: 65/255, green: 78/255, blue: 51/255))
+                    if speechManager.isSpeaking && speechManager.currentID == titulo {
+                        Image(systemName: "pause.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.red)
+                    } else {
+                        Image(systemName: "speaker.wave.2.fill")
+                            .font(.body)
+                            .foregroundColor(Color(red: 65/255, green: 78/255, blue: 51/255))
+                    }
                 }
             }
             .foregroundColor(Color(red: 65/255, green: 78/255, blue: 51/255)) // Verde oscuro
@@ -138,7 +138,6 @@ struct GuiaUsoView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             GuiaUsoView()
-                // 6. Añade esto para que la Vista Previa funcione
                 .environmentObject(SpeechManager.shared)
         }
     }

@@ -41,8 +41,7 @@ struct AgeSelectionView: View {
                 
                 // 4. Botón para guardar la edad
                 Button(action: {
-                    // Al presionar, guarda la edad en AppStorage.
-                    //hará que la vista principal (nutripekesApp) se actualice y muestre la WelcomeView
+
                     self.childAge = selectedAge
                 }) {
                     Text("Guardar y Empezar")

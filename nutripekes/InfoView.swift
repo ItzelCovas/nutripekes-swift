@@ -91,6 +91,7 @@ class InfoViewModel: ObservableObject {
 
 
 // 3. VISTA DE LA TARJETA
+// 3. VISTA DE LA TARJETA (MODIFICADA CON PLAY/PAUSE)
 struct InfoCardView: View {
     let card: InfoCard
     @EnvironmentObject var speechManager: SpeechManager
@@ -98,34 +99,56 @@ struct InfoCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
             
-            // Título principal de la tarjeta (con TTS)
+            // --- 1. TÍTULO PRINCIPAL DE LA TARJETA ---
             HStack {
                 Text(card.title)
                     .font(.system(size: 28, weight: .bold, design: .rounded))
+                
                 Spacer()
+                
+                // Botón Play/Pause para el Título
                 Button(action: {
-                    speechManager.speak(text: card.title)
+                    // Usamos el ID de la tarjeta (PK de la API)
+                    speechManager.speak(text: card.title, id: card.id)
                 }) {
-                    Image(systemName: "speaker.wave.2.fill")
-                        .font(.title2)
+                    if speechManager.isSpeaking && speechManager.currentID == card.id {
+                        // Icono PAUSA
+                        Image(systemName: "pause.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.white.opacity(0.8)) // Un blanco sutil
+                    } else {
+                        // Icono SPEAKER
+                        Image(systemName: "speaker.wave.2.fill")
+                            .font(.title2)
+                    }
                 }
             }
             
-            // Itera sobre el 'content'
+            //  CONTENIDO (ITEMS) 
             ForEach(card.content) { item in
                 VStack(alignment: .leading, spacing: 5) {
                     
-                    // Subtítulo de contenido (con TTS)
                     HStack {
                         Text(item.title)
                             .font(.system(size: 20, weight: .bold, design: .rounded))
+                        
                         Spacer()
+                        
+                        // Botón Play/Pause para el Item
                         Button(action: {
                             let textoCompleto = "\(item.title). \(item.description)"
-                            speechManager.speak(text: textoCompleto)
+                            speechManager.speak(text: textoCompleto, id: item.id.uuidString)
                         }) {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .font(.body)
+                            if speechManager.isSpeaking && speechManager.currentID == item.id.uuidString {
+                                // Icono PAUSA
+                                Image(systemName: "pause.circle.fill")
+                                    .font(.body)
+                                    .foregroundColor(.white.opacity(0.8))
+                            } else {
+                                // Icono SPEAKER
+                                Image(systemName: "speaker.wave.2.fill")
+                                    .font(.body)
+                            }
                         }
                     }
                     
@@ -137,7 +160,7 @@ struct InfoCardView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(card.displayColor) // Usa el color decodificado
+        .background(card.displayColor)
         .foregroundColor(.white)
         .cornerRadius(20)
     }

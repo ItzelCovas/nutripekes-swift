@@ -22,7 +22,7 @@ struct MainView: View {
                 .offset(x: isMenuOpen ? 0 : -270)
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.9), value: isMenuOpen)
-        .navigationBarHidden(true) // Ocultamos la barra de navegación por defecto de NavigationView
+        .navigationBarHidden(true)
     }
 }
 
@@ -36,15 +36,21 @@ struct MenuView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
             
-            // --- SECCIÓN JUEGO CON TTS ---
+            // SECCIÓN JUEGO CON TTS
             HStack {
                 Text("Juego")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                 Spacer()
+                
+                // Botón con Play/Pause
                 Button(action: {
-                    speechManager.speak(text: "Juego. ¡Atrápalo!")
+                    speechManager.speak(text: "Juego. ¡Atrápalo!", id: "menu_juego")
                 }) {
-                    Image(systemName: "speaker.wave.2.fill").font(.title2)
+                    if speechManager.isSpeaking && speechManager.currentID == "menu_juego" {
+                        Image(systemName: "pause.circle.fill").font(.title2)
+                    } else {
+                        Image(systemName: "speaker.wave.2.fill").font(.title2)
+                    }
                 }
             }
             .foregroundColor(.white)
@@ -62,15 +68,21 @@ struct MenuView: View {
                 .cornerRadius(10)
             }
             
-            // --- SECCIÓN PADRES CON TTS ---
+            //  SECCIÓN PADRES CON TTS
             HStack {
                 Text("Padres")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                 Spacer()
+                
+                // Botón con Play/Pause
                 Button(action: {
-                    speechManager.speak(text: "Padres. Tabla y Recetario.")
+                    speechManager.speak(text: "Padres. Tabla y Recetario.", id: "menu_padres")
                 }) {
-                    Image(systemName: "speaker.wave.2.fill").font(.title2)
+                    if speechManager.isSpeaking && speechManager.currentID == "menu_padres" {
+                        Image(systemName: "pause.circle.fill").font(.title2)
+                    } else {
+                        Image(systemName: "speaker.wave.2.fill").font(.title2)
+                    }
                 }
             }
             .foregroundColor(.white)
@@ -88,15 +100,21 @@ struct MenuView: View {
                 .cornerRadius(10)
             }
             
-            // --- SECCIÓN INFORMACIÓN CON TTS ---
+            // INFORMACIÓN CON TTS
             HStack {
                 Text("Información")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                 Spacer()
+                
+                // Botón con Play/Pause
                 Button(action: {
-                    speechManager.speak(text: "Información. Información General. Guía de Uso.")
+                    speechManager.speak(text: "Información. Información General. Guía de Uso.", id: "menu_info")
                 }) {
-                    Image(systemName: "speaker.wave.2.fill").font(.title2)
+                    if speechManager.isSpeaking && speechManager.currentID == "menu_info" {
+                        Image(systemName: "pause.circle.fill").font(.title2)
+                    } else {
+                        Image(systemName: "speaker.wave.2.fill").font(.title2)
+                    }
                 }
             }
             .foregroundColor(.white)
@@ -125,14 +143,21 @@ struct MenuView: View {
                 .cornerRadius(10)
             }
             
+            //  AJUSTES CON TTS
             HStack {
                 Text("Ajustes")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                 Spacer()
+                
+                // Botón con Play/Pause
                 Button(action: {
-                    speechManager.speak(text: "Ajustes. Cambiar Edad.")
+                    speechManager.speak(text: "Ajustes. Cambiar Edad.", id: "menu_ajustes")
                 }) {
-                    Image(systemName: "speaker.wave.2.fill").font(.title2)
+                    if speechManager.isSpeaking && speechManager.currentID == "menu_ajustes" {
+                        Image(systemName: "pause.circle.fill").font(.title2)
+                    } else {
+                        Image(systemName: "speaker.wave.2.fill").font(.title2)
+                    }
                 }
             }
             .foregroundColor(.white)
@@ -167,8 +192,7 @@ struct MenuView: View {
 
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
-        MainView(childAge:5)
-            // para que el Preview no crashee
+        MainView(childAge: 5)
             .environmentObject(SpeechManager.shared)
     }
 }

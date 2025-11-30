@@ -73,7 +73,6 @@ class DashboardViewModel: ObservableObject {
         }
     }
         
-    // Funciones auxiliares para reproducir sin interrupciones
     private func playUp() {
         if upPlayer?.isPlaying == true { upPlayer?.stop(); upPlayer?.currentTime = 0 }
         upPlayer?.play()
