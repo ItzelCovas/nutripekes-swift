@@ -26,6 +26,7 @@ class RecetarioViewModel: ObservableObject {
     @Published var errorMessage: String? = nil
 
     func fetchRecetas() async {
+        guard recetas.isEmpty else { return }
         guard let url = URL(string: "https://nutripekes-api.vercel.app/recetas") else {
             errorMessage = "URL inválida"
             return
@@ -210,9 +211,9 @@ struct PadresView: View {
             Color(red: 226/255, green: 114/255, blue: 101/255),
             for: .navigationBar
         )
-        .onDisappear {
-            speechManager.stop()
-        }
+        //.onDisappear {
+          //  speechManager.stop()
+        //}
         .task {
             await viewModel.fetchRecetas()
         }
